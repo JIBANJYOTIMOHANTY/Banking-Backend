@@ -39,8 +39,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String jwtToken = null;
 
         // JWT Token is in the form "Bearer token". Remove Bearer prefix and get only the Token
-        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7);
+        if (requestTokenHeader != null && requestTokenHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            jwtToken = requestTokenHeader.substring(7).trim();
+            // In case the user pasted "Bearer <token>" into a Swagger UI bearer field, resulting in "Bearer Bearer <token>"
+            if (jwtToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                jwtToken = jwtToken.substring(7).trim();
+            }
             try {
                 // First check Redis for sliding session expiration
                 String sessionKey = "jwt_session:" + jwtToken;
@@ -50,15 +54,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     username = jwtTokenUtil.getUsernameFromToken(jwtToken);
                     // Sliding expiration: user is active, so refresh TTL in Redis for another 10 minutes
                     redisTemplate.expire(sessionKey, Duration.ofMinutes(10));
+                    if (username != null) {
+                        String activeTokenKey = "user_active_token:" + username;
+                        redisTemplate.expire(activeTokenKey, Duration.ofMinutes(10));
+                    }
                 } else {
                     logger.warn("JWT Session not found in Redis or expired due to inactivity");
                 }
             } catch (IllegalArgumentException e) {
-                logger.warn("Unable to get JWT Token");
+                logger.warn("Unable to get JWT Token: " + e.getMessage());
             } catch (io.jsonwebtoken.ExpiredJwtException e) {
-                logger.warn("JWT Token has expired");
+                logger.warn("JWT Token has expired: " + e.getMessage());
             } catch (Exception e) {
-                logger.error("Error processing JWT Token: " + e.getMessage());
+                logger.error("Error processing JWT Token: " + e.getMessage(), e);
             }
         } else {
             logger.debug("JWT Token does not begin with Bearer String");

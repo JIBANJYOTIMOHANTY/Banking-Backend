@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -60,17 +61,59 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+        final String canonicalUsername = userDetails.getUsername();
         final String token = jwtTokenUtil.generateToken(userDetails);
+
+        // Retrieve the old token (if any) and delete it from Redis to invalidate it
+        String activeTokenKey = "user_active_token:" + canonicalUsername;
+        String oldToken = redisTemplate.opsForValue().get(activeTokenKey);
+        if (oldToken != null) {
+            redisTemplate.delete("jwt_session:" + oldToken);
+        }
 
         // Store session in Redis with 10 minutes sliding TTL
         String sessionKey = "jwt_session:" + token;
-        redisTemplate.opsForValue().set(sessionKey, request.getUsername(), Duration.ofMinutes(10));
+        redisTemplate.opsForValue().set(sessionKey, canonicalUsername, Duration.ofMinutes(10));
+
+        // Update the active token mapping with 10 minutes TTL
+        redisTemplate.opsForValue().set(activeTokenKey, token, Duration.ofMinutes(10));
 
         AuthResponse authResponse = new AuthResponse(
                 token,
                 JwtTokenUtil.JWT_TOKEN_VALIDITY,
-                request.getUsername());
+                canonicalUsername);
 
         return ResponseEntity.ok(new ApiResponse<>(0, "Login successful", List.of(authResponse)));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Logout user and invalidate JWT", description = "Logs out the user and invalidates the JWT session in Redis.")
+    public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request) {
+        String requestTokenHeader = request.getHeader("Authorization");
+        if (requestTokenHeader != null && requestTokenHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String jwtToken = requestTokenHeader.substring(7).trim();
+            if (jwtToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                jwtToken = jwtToken.substring(7).trim();
+            }
+            try {
+                String username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                if (username != null) {
+                    // Delete the specific session key
+                    String sessionKey = "jwt_session:" + jwtToken;
+                    redisTemplate.delete(sessionKey);
+
+                    // Only delete the active token mapping if it matches the token being invalidated
+                    String activeTokenKey = "user_active_token:" + username;
+                    String activeToken = redisTemplate.opsForValue().get(activeTokenKey);
+                    if (jwtToken.equals(activeToken)) {
+                        redisTemplate.delete(activeTokenKey);
+                    }
+                    return ResponseEntity.ok(new ApiResponse<>(0, "Logout successful", List.of("Session invalidated successfully")));
+                }
+            } catch (Exception e) {
+                // Token might be malformed or already expired, we still treat logout as successful
+            }
+        }
+        return ResponseEntity.badRequest().body(new ApiResponse<>(1, "Invalid or missing token", List.of()));
     }
 }
