@@ -38,10 +38,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String username = null;
         String jwtToken = null;
 
-        // JWT Token is in the form "Bearer token". Remove Bearer prefix and get only the Token
+        // JWT Token is in the form "Bearer token". Remove Bearer prefix and get only
+        // the Token
         if (requestTokenHeader != null && requestTokenHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
             jwtToken = requestTokenHeader.substring(7).trim();
-            // In case the user pasted "Bearer <token>" into a Swagger UI bearer field, resulting in "Bearer Bearer <token>"
+            // In case the user pasted "Bearer <token>" into a Swagger UI bearer field,
+            // resulting in "Bearer Bearer <token>"
             if (jwtToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
                 jwtToken = jwtToken.substring(7).trim();
             }
@@ -49,14 +51,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 // First check Redis for sliding session expiration
                 String sessionKey = "jwt_session:" + jwtToken;
                 Boolean hasSession = redisTemplate.hasKey(sessionKey);
-                
+
                 if (Boolean.TRUE.equals(hasSession)) {
                     username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-                    // Sliding expiration: user is active, so refresh TTL in Redis for another 10 minutes
-                    redisTemplate.expire(sessionKey, Duration.ofMinutes(10));
+                    // Sliding expiration: user is active, so refresh TTL in Redis
+                    redisTemplate.expire(sessionKey, jwtTokenUtil.getValidityDuration());
                     if (username != null) {
                         String activeTokenKey = "user_active_token:" + username;
-                        redisTemplate.expire(activeTokenKey, Duration.ofMinutes(10));
+                        redisTemplate.expire(activeTokenKey, jwtTokenUtil.getValidityDuration());
                     }
                 } else {
                     logger.warn("JWT Session not found in Redis or expired due to inactivity");
@@ -83,7 +85,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 usernamePasswordAuthenticationToken
                         .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 // After setting the Authentication in the context, we specify
-                // that the current user is authenticated. So it passes the Spring Security Configurations successfully.
+                // that the current user is authenticated. So it passes the Spring Security
+                // Configurations successfully.
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }

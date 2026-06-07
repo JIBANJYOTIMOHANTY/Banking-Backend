@@ -71,16 +71,16 @@ public class AuthController {
             redisTemplate.delete("jwt_session:" + oldToken);
         }
 
-        // Store session in Redis with 10 minutes sliding TTL
+        // Store session in Redis with sliding TTL from configuration
         String sessionKey = "jwt_session:" + token;
-        redisTemplate.opsForValue().set(sessionKey, canonicalUsername, Duration.ofMinutes(10));
+        redisTemplate.opsForValue().set(sessionKey, canonicalUsername, jwtTokenUtil.getValidityDuration());
 
-        // Update the active token mapping with 10 minutes TTL
-        redisTemplate.opsForValue().set(activeTokenKey, token, Duration.ofMinutes(10));
+        // Update the active token mapping with TTL from configuration
+        redisTemplate.opsForValue().set(activeTokenKey, token, jwtTokenUtil.getValidityDuration());
 
         AuthResponse authResponse = new AuthResponse(
                 token,
-                JwtTokenUtil.JWT_TOKEN_VALIDITY,
+                jwtTokenUtil.getValidityDuration().toMillis(),
                 canonicalUsername);
 
         return ResponseEntity.ok(new ApiResponse<>(0, "Login successful", List.of(authResponse)));
@@ -102,16 +102,19 @@ public class AuthController {
                     String sessionKey = "jwt_session:" + jwtToken;
                     redisTemplate.delete(sessionKey);
 
-                    // Only delete the active token mapping if it matches the token being invalidated
+                    // Only delete the active token mapping if it matches the token being
+                    // invalidated
                     String activeTokenKey = "user_active_token:" + username;
                     String activeToken = redisTemplate.opsForValue().get(activeTokenKey);
                     if (jwtToken.equals(activeToken)) {
                         redisTemplate.delete(activeTokenKey);
                     }
-                    return ResponseEntity.ok(new ApiResponse<>(0, "Logout successful", List.of("Session invalidated successfully")));
+                    return ResponseEntity
+                            .ok(new ApiResponse<>(0, "Logout successful", List.of("Session invalidated successfully")));
                 }
             } catch (Exception e) {
-                // Token might be malformed or already expired, we still treat logout as successful
+                // Token might be malformed or already expired, we still treat logout as
+                // successful
             }
         }
         return ResponseEntity.badRequest().body(new ApiResponse<>(1, "Invalid or missing token", List.of()));

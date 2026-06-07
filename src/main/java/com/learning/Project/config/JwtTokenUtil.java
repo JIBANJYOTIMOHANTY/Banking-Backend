@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,8 +21,12 @@ public class JwtTokenUtil {
     @Value("${jwt.secret:mySecureRandomSecretKeyThatIsAtLeast32BytesLongForHS256Security}")
     private String secret;
 
-    // 10 minutes in milliseconds
-    public static final long JWT_TOKEN_VALIDITY = 10 * 60 * 1000;
+    @Value("${jwt.validity-duration}")
+    private Duration validityDuration;
+
+    public Duration getValidityDuration() {
+        return validityDuration;
+    }
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
@@ -63,7 +68,7 @@ public class JwtTokenUtil {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .expiration(new Date(System.currentTimeMillis() + getValidityDuration().toMillis()))
                 .signWith(getSigningKey())
                 .compact();
     }
