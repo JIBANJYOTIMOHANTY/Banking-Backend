@@ -26,6 +26,9 @@ public class BankAccount implements Serializable {
     private String created_at;
     private String updated_at;
 
+    @jakarta.persistence.OneToOne(mappedBy = "bankAccount", cascade = jakarta.persistence.CascadeType.ALL)
+    private User user;
+
     // No-arg constructor
     public BankAccount() {
     }
@@ -102,5 +105,13 @@ public class BankAccount implements Serializable {
 
     public void setUpdated_at(String updated_at) {
         this.updated_at = updated_at;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }

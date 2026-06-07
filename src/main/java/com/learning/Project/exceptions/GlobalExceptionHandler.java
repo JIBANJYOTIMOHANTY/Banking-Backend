@@ -24,6 +24,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.TOO_MANY_REQUESTS);
     }
 
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthenticationExceptions(org.springframework.security.core.AuthenticationException ex) {
+        ApiResponse<Object> response = new ApiResponse<>(1, "Authentication failed: " + ex.getMessage(), List.of());
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneralExceptions(Exception ex) {
         ApiResponse<Object> response = new ApiResponse<>(1, MessageConstants.UNEXPECTED_ERROR + ex.getMessage(),
