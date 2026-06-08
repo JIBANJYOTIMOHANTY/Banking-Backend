@@ -30,7 +30,7 @@ public class SecurityConfig {
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
-                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .cors(cors -> cors.disable())
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
@@ -39,7 +39,8 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/v3/api-docs/**",
                                                                 "/api-docs/**",
-                                                                "/swagger-ui.html")
+                                                                "/swagger-ui.html",
+                                                                "/error")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
                                 .exceptionHandling(exception -> exception
@@ -53,16 +54,17 @@ public class SecurityConfig {
         }
 
         @Bean
-        public CorsConfigurationSource corsConfigurationSource() {
+        public org.springframework.web.filter.CorsFilter corsFilter() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:4201", "http://localhost:4300"));
+                configuration.setAllowedOrigins(
+                                List.of("http://localhost:4200", "http://localhost:4201", "http://localhost:4300"));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+                configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Authorization"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
-                return source;
+                return new org.springframework.web.filter.CorsFilter(source);
         }
 
         @Bean
