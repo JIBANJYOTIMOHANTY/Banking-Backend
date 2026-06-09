@@ -66,7 +66,7 @@ graph TD
 *   **`config/`**: Contains configurations for Security, JWT Filters, Redis connection, MVC Interceptors (Rate Limiting), and OpenAPI Customizers.
 *   **`controller/`**: Exposes REST endpoints, registers URL mapping patterns, and configures API operations tags.
 *   **`service/`**: Implements banking logic and coordinates transaction bounds.
-*   **`model/`**: Defines JPA Database Entities (`User`, `BankAccount`, `Transaction`).
+*   **`model/`**: Defines JPA Database Entities (`User`, `CustomerAccount`, `Transaction`).
 *   **`dto/`**: Standardizes Request/Response payloads (e.g. `LoginRequest`, `ApiResponse`).
 *   **`repository/`**: Interfaces extending `JpaRepository` for data access.
 *   **`validation/`**: Custom input validators and Rate Limit annotations.

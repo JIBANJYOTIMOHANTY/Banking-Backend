@@ -5,7 +5,7 @@ import com.learning.Project.model.User;
 import com.learning.Project.repository.UserRepository;
 import com.learning.Project.service.UserService;
 import com.learning.Project.validation.UserValidator;
-import com.learning.Project.exceptions.BankAccountExceptions;
+import com.learning.Project.exceptions.CustomerAccountExceptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,20 +28,20 @@ public class UserServiceImpl implements UserService {
         // 1. Validate password strength
         Optional<String> passwordValidationError = UserValidator.validatePassword(request.getPassword());
         if (passwordValidationError.isPresent()) {
-            throw new BankAccountExceptions(passwordValidationError.get());
+            throw new CustomerAccountExceptions(passwordValidationError.get());
         }
 
         // Check if username already exists
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new BankAccountExceptions("Username is already taken");
+            throw new CustomerAccountExceptions("Username is already taken");
         }
 
         // 2. Create and save User
         if (request.getFirstName() == null || request.getFirstName().isBlank()) {
-            throw new BankAccountExceptions("First name is mandatory");
+            throw new CustomerAccountExceptions("First name is mandatory");
         }
         if (request.getLastName() == null || request.getLastName().isBlank()) {
-            throw new BankAccountExceptions("Last name is mandatory");
+            throw new CustomerAccountExceptions("Last name is mandatory");
         }
 
         User user = new User();

@@ -1,32 +1,32 @@
 package com.learning.Project.validation;
 
 import com.learning.Project.constants.MessageConstants;
-import com.learning.Project.model.BankAccount;
+import com.learning.Project.model.CustomerAccount;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class BankAccountValidator {
+public class CustomerAccountValidator {
 
-    private BankAccountValidator() {
+    private CustomerAccountValidator() {
         // Prevent instantiation
     }
 
     /**
-     * Validates a BankAccount object, checking only the specified fields.
+     * Validates a CustomerAccount object, checking only the specified fields.
      * If no fields are specified, all mandatory fields are validated.
-     * @param account the bank account to validate
+     * @param account the customer account to validate
      * @param fieldsToCheck the names of fields to validate
      * @return an Optional containing the error message if invalid, or empty if valid
      */
-    public static Optional<String> validate(BankAccount account, String... fieldsToCheck) {
+    public static Optional<String> validate(CustomerAccount account, String... fieldsToCheck) {
         if (account == null) {
             return Optional.of("Account data must not be null");
         }
 
         List<String> checks = (fieldsToCheck != null && fieldsToCheck.length > 0)
                 ? Arrays.asList(fieldsToCheck)
-                : Arrays.asList("firstName", "lastName", "balance", "mobileNumber", "govtIdType", "govtId", "dob", "address");
+                : Arrays.asList("firstName", "lastName", "balance", "mobileNumber", "govtIdType", "govtId", "dob", "address", "pan", "city", "state", "country", "pincode");
 
         if (checks.contains("accountNumber") && (account.getAccountNumber() == null || account.getAccountNumber().isBlank())) {
             return Optional.of(MessageConstants.INVALID_ACCOUNT_NUMBER);
@@ -37,8 +37,13 @@ public class BankAccountValidator {
         if (checks.contains("lastName") && (account.getLastName() == null || account.getLastName().isBlank())) {
             return Optional.of(MessageConstants.LAST_NAME_IS_MANDATORY);
         }
-        if (checks.contains("mobileNumber") && (account.getMobileNumber() == null || account.getMobileNumber().isBlank())) {
-            return Optional.of("Mobile number is mandatory");
+        if (checks.contains("mobileNumber")) {
+            if (account.getMobileNumber() == null || account.getMobileNumber().isBlank()) {
+                return Optional.of("Mobile number is mandatory");
+            }
+            if (!account.getMobileNumber().matches("^\\+[0-9]{1,3}[0-9]{10}$")) {
+                return Optional.of("Mobile number must be in format +{CountryCode}{10Digits} (e.g. +919876543210)");
+            }
         }
         if (checks.contains("govtIdType") && (account.getGovtIdType() == null || account.getGovtIdType().isBlank())) {
             return Optional.of("Government ID type is mandatory");
@@ -52,6 +57,26 @@ public class BankAccountValidator {
         if (checks.contains("address") && (account.getAddress() == null || account.getAddress().isBlank())) {
             return Optional.of("Address is mandatory");
         }
+        if (checks.contains("pan") && (account.getPan() == null || account.getPan().isBlank())) {
+            return Optional.of("PAN number is mandatory");
+        }
+        if (checks.contains("city") && (account.getCity() == null || account.getCity().isBlank())) {
+            return Optional.of("City is mandatory");
+        }
+        if (checks.contains("state") && (account.getState() == null || account.getState().isBlank())) {
+            return Optional.of("State is mandatory");
+        }
+        if (checks.contains("country") && (account.getCountry() == null || account.getCountry().isBlank())) {
+            return Optional.of("Country is mandatory");
+        }
+        if (checks.contains("pincode")) {
+            if (account.getPincode() == null || account.getPincode().isBlank()) {
+                return Optional.of("Pincode is mandatory");
+            }
+            if (!account.getPincode().matches("^[0-9]{6}$")) {
+                return Optional.of("Pincode must be exactly 6 digits");
+            }
+        }
         if (checks.contains("balance") && account.getBalance() <= 0) {
             return Optional.of(MessageConstants.BALANCE_IS_MANDATORY);
         }
@@ -59,13 +84,13 @@ public class BankAccountValidator {
     }
 
     /**
-     * Validates a BankAccount object specifically for updates.
+     * Validates a CustomerAccount object specifically for updates.
      * Requires accountNumber, rejects balance modifications, and ensures at least
      * one valid updated field is provided.
-     * @param account the bank account to validate for updates
+     * @param account the customer account to validate for updates
      * @return an Optional containing the error message if invalid, or empty if valid
      */
-    public static Optional<String> validateUpdate(BankAccount account) {
+    public static Optional<String> validateUpdate(CustomerAccount account) {
         if (account == null) {
             return Optional.of("Account data must not be null");
         }
@@ -92,9 +117,16 @@ public class BankAccountValidator {
         boolean hasNomineeName = account.getNomineeName() != null;
         boolean hasNomineeRelation = account.getNomineeRelation() != null;
         boolean hasAddress = account.getAddress() != null;
+        boolean hasPan = account.getPan() != null;
+        boolean hasLandmark = account.getLandmark() != null;
+        boolean hasCity = account.getCity() != null;
+        boolean hasState = account.getState() != null;
+        boolean hasCountry = account.getCountry() != null;
+        boolean hasPincode = account.getPincode() != null;
 
         if (!hasFirstName && !hasLastName && !hasDob && !hasEmail && !hasMobileNumber &&
-            !hasGovtId && !hasGovtIdType && !hasOccupation && !hasNomineeName && !hasNomineeRelation && !hasAddress) {
+            !hasGovtId && !hasGovtIdType && !hasOccupation && !hasNomineeName && !hasNomineeRelation && !hasAddress && !hasPan &&
+            !hasLandmark && !hasCity && !hasState && !hasCountry && !hasPincode) {
             return Optional.of(MessageConstants.NO_UPDATE_DATA_PROVIDED);
         }
 
@@ -110,8 +142,13 @@ public class BankAccountValidator {
         if (hasEmail && account.getEmail().isBlank()) {
             return Optional.of("Email must not be blank");
         }
-        if (hasMobileNumber && account.getMobileNumber().isBlank()) {
-            return Optional.of("Mobile number must not be blank");
+        if (hasMobileNumber) {
+            if (account.getMobileNumber().isBlank()) {
+                return Optional.of("Mobile number must not be blank");
+            }
+            if (!account.getMobileNumber().matches("^\\+[0-9]{1,3}[0-9]{10}$")) {
+                return Optional.of("Mobile number must be in format +{CountryCode}{10Digits} (e.g. +919876543210)");
+            }
         }
         if (hasGovtId && account.getGovtId().isBlank()) {
             return Optional.of("Government ID must not be blank");
@@ -130,6 +167,26 @@ public class BankAccountValidator {
         }
         if (hasAddress && account.getAddress().isBlank()) {
             return Optional.of("Address must not be blank");
+        }
+        if (hasPan && account.getPan().isBlank()) {
+            return Optional.of("PAN must not be blank");
+        }
+        if (hasCity && account.getCity().isBlank()) {
+            return Optional.of("City must not be blank");
+        }
+        if (hasState && account.getState().isBlank()) {
+            return Optional.of("State must not be blank");
+        }
+        if (hasCountry && account.getCountry().isBlank()) {
+            return Optional.of("Country must not be blank");
+        }
+        if (hasPincode) {
+            if (account.getPincode().isBlank()) {
+                return Optional.of("Pincode must not be blank");
+            }
+            if (!account.getPincode().matches("^[0-9]{6}$")) {
+                return Optional.of("Pincode must be exactly 6 digits");
+            }
         }
 
         return Optional.empty();

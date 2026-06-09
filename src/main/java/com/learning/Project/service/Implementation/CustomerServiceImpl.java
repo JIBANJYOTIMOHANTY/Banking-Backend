@@ -13,20 +13,20 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.learning.Project.model.BankAccount;
-import com.learning.Project.repository.BankAccountRepository;
-import com.learning.Project.service.BankService;
-import com.learning.Project.validation.BankAccountValidator;
-import com.learning.Project.exceptions.BankAccountExceptions;
+import com.learning.Project.model.CustomerAccount;
+import com.learning.Project.repository.CustomerAccountRepository;
+import com.learning.Project.service.CustomerService;
+import com.learning.Project.validation.CustomerAccountValidator;
+import com.learning.Project.exceptions.CustomerAccountExceptions;
 import com.learning.Project.constants.MessageConstants;
 import io.micrometer.core.instrument.MeterRegistry;
 import com.learning.Project.service.TransactionService;
 
 @Service
-public class BankServiceImpl implements BankService {
+public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
-    private BankAccountRepository bankAccountRepository;
+    private CustomerAccountRepository customerAccountRepository;
 
     @Autowired
     private TransactionService transactionService;
@@ -35,7 +35,7 @@ public class BankServiceImpl implements BankService {
     private MeterRegistry meterRegistry;
 
     private synchronized String generateAccountNumber() {
-        Optional<BankAccount> latestAccount = bankAccountRepository.findFirstByOrderByIdDesc();
+        Optional<CustomerAccount> latestAccount = customerAccountRepository.findFirstByOrderByIdDesc();
         if (latestAccount.isPresent()) {
             String lastAccountNumber = latestAccount.get().getAccountNumber();
             if (lastAccountNumber != null && lastAccountNumber.startsWith("ACC")) {
@@ -46,7 +46,7 @@ public class BankServiceImpl implements BankService {
                     do {
                         nextAcc = String.format("ACC%04d", numericPart + offset);
                         offset++;
-                    } while (bankAccountRepository.findByAccountNumber(nextAcc).isPresent());
+                    } while (customerAccountRepository.findByAccountNumber(nextAcc).isPresent());
                     return nextAcc;
                 } catch (NumberFormatException e) {
                     // Fallback to sequential search if parse fails
@@ -56,7 +56,7 @@ public class BankServiceImpl implements BankService {
         
         String nextAcc = "ACC0001";
         int suffix = 1;
-        while (bankAccountRepository.findByAccountNumber(nextAcc).isPresent()) {
+        while (customerAccountRepository.findByAccountNumber(nextAcc).isPresent()) {
             suffix++;
             nextAcc = String.format("ACC%04d", suffix);
         }
@@ -65,7 +65,7 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @CachePut(value = "bankAccounts", key = "#result.accountNumber")
-    public BankAccount createAccount(BankAccount account) {
+    public CustomerAccount createAccount(CustomerAccount account) {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         account.setCreated_at(currentTime);
         account.setUpdated_at(currentTime);
@@ -74,7 +74,7 @@ public class BankServiceImpl implements BankService {
         String generatedNo = generateAccountNumber();
         account.setAccountNumber(generatedNo);
 
-        BankAccount savedAccount = bankAccountRepository.save(account);
+        CustomerAccount savedAccount = customerAccountRepository.save(account);
         if (savedAccount.getBalance() > 0) {
             transactionService.recordTransaction(savedAccount.getAccountNumber(), MessageConstants.TX_INITIAL_DEPOSIT, savedAccount.getBalance(), savedAccount.getBalance());
         }
@@ -84,14 +84,14 @@ public class BankServiceImpl implements BankService {
     @Override
     @Transactional
     @CachePut(value = "bankAccounts", key = "#accountNumber")
-    public BankAccount deposit(String accountNumber, double amount) {
-        BankAccount account = bankAccountRepository.findByAccountNumber(accountNumber)
+    public CustomerAccount deposit(String accountNumber, double amount) {
+        CustomerAccount account = customerAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(
-                        () -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+                        () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         account.setBalance(account.getBalance() + amount);
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         account.setUpdated_at(currentTime);
-        BankAccount savedAccount = bankAccountRepository.save(account);
+        CustomerAccount savedAccount = customerAccountRepository.save(account);
         meterRegistry.counter("bank.operations.total", "type", "deposit").increment();
         meterRegistry.counter("bank.operations.amount.total", "type", "deposit").increment(amount);
         transactionService.recordTransaction(accountNumber, MessageConstants.TX_DEPOSIT, amount, savedAccount.getBalance());
@@ -101,17 +101,17 @@ public class BankServiceImpl implements BankService {
     @Override
     @Transactional
     @CachePut(value = "bankAccounts", key = "#accountNumber")
-    public BankAccount withdraw(String accountNumber, double amount) {
-        BankAccount account = bankAccountRepository.findByAccountNumber(accountNumber)
+    public CustomerAccount withdraw(String accountNumber, double amount) {
+        CustomerAccount account = customerAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(
-                        () -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+                        () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         if (account.getBalance() < amount) {
-            throw new BankAccountExceptions(MessageConstants.INSUFFICIENT_BALANCE + account.getBalance());
+            throw new CustomerAccountExceptions(MessageConstants.INSUFFICIENT_BALANCE + account.getBalance());
         }
         account.setBalance(account.getBalance() - amount);
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         account.setUpdated_at(currentTime);
-        BankAccount savedAccount = bankAccountRepository.save(account);
+        CustomerAccount savedAccount = customerAccountRepository.save(account);
         meterRegistry.counter("bank.operations.total", "type", "withdrawal").increment();
         meterRegistry.counter("bank.operations.amount.total", "type", "withdrawal").increment(amount);
         transactionService.recordTransaction(accountNumber, MessageConstants.TX_WITHDRAWAL, amount, savedAccount.getBalance());
@@ -120,27 +120,27 @@ public class BankServiceImpl implements BankService {
 
     @Override
     @Cacheable(value = "bankAccounts", key = "#accountNumber")
-    public BankAccount getAccount(String accountNumber) {
-        return bankAccountRepository.findByAccountNumber(accountNumber)
+    public CustomerAccount getAccount(String accountNumber) {
+        return customerAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(
-                        () -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+                        () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
     }
 
     @Override
-    public List<BankAccount> getAllAccounts() {
-        return bankAccountRepository.findAll();
+    public List<CustomerAccount> getAllAccounts() {
+        return customerAccountRepository.findAll();
     }
 
     @Override
     @CachePut(value = "bankAccounts", key = "#result.accountNumber")
-    public BankAccount updateAccountHolderData(BankAccount account) {
-        Optional<String> validationError = BankAccountValidator.validateUpdate(account);
+    public CustomerAccount updateAccountHolderData(CustomerAccount account) {
+        Optional<String> validationError = CustomerAccountValidator.validateUpdate(account);
         if (validationError.isPresent()) {
-            throw new BankAccountExceptions(validationError.get());
+            throw new CustomerAccountExceptions(validationError.get());
         }
-        BankAccount existingAccount = bankAccountRepository.findByAccountNumber(account.getAccountNumber())
+        CustomerAccount existingAccount = customerAccountRepository.findByAccountNumber(account.getAccountNumber())
                 .orElseThrow(
-                        () -> new BankAccountExceptions(
+                        () -> new CustomerAccountExceptions(
                                 MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + account.getAccountNumber()));
         if (account.getFirstName() != null && !account.getFirstName().isBlank()) {
             existingAccount.setFirstName(account.getFirstName());
@@ -175,19 +175,37 @@ public class BankServiceImpl implements BankService {
         if (account.getAddress() != null && !account.getAddress().isBlank()) {
             existingAccount.setAddress(account.getAddress());
         }
+        if (account.getPan() != null && !account.getPan().isBlank()) {
+            existingAccount.setPan(account.getPan());
+        }
+        if (account.getLandmark() != null) {
+            existingAccount.setLandmark(account.getLandmark());
+        }
+        if (account.getCity() != null && !account.getCity().isBlank()) {
+            existingAccount.setCity(account.getCity());
+        }
+        if (account.getState() != null && !account.getState().isBlank()) {
+            existingAccount.setState(account.getState());
+        }
+        if (account.getCountry() != null && !account.getCountry().isBlank()) {
+            existingAccount.setCountry(account.getCountry());
+        }
+        if (account.getPincode() != null && !account.getPincode().isBlank()) {
+            existingAccount.setPincode(account.getPincode());
+        }
         existingAccount.setUpdated_at(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        return bankAccountRepository.save(existingAccount);
+        return customerAccountRepository.save(existingAccount);
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "bankAccounts", key = "#accountNumber")
     public void deleteAccount(String accountNumber) {
-        BankAccount account = bankAccountRepository.findByAccountNumber(accountNumber)
+        CustomerAccount account = customerAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(
-                        () -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+                        () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         transactionService.deleteTransactions(accountNumber);
-        bankAccountRepository.delete(account);
+        customerAccountRepository.delete(account);
     }
 
     @Override
@@ -198,20 +216,20 @@ public class BankServiceImpl implements BankService {
     })
     public void transfer(String sourceAccountNumber, String destAccountNumber, double amount) {
         if (amount <= 0) {
-            throw new BankAccountExceptions(MessageConstants.INVALID_TRANSFER_AMOUNT);
+            throw new CustomerAccountExceptions(MessageConstants.INVALID_TRANSFER_AMOUNT);
         }
         if (sourceAccountNumber.equals(destAccountNumber)) {
-            throw new BankAccountExceptions(MessageConstants.CANNOT_TRANSFER_TO_SELF);
+            throw new CustomerAccountExceptions(MessageConstants.CANNOT_TRANSFER_TO_SELF);
         }
 
-        BankAccount sourceAccount = bankAccountRepository.findByAccountNumber(sourceAccountNumber)
-                .orElseThrow(() -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + sourceAccountNumber));
+        CustomerAccount sourceAccount = customerAccountRepository.findByAccountNumber(sourceAccountNumber)
+                .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + sourceAccountNumber));
         
-        BankAccount destAccount = bankAccountRepository.findByAccountNumber(destAccountNumber)
-                .orElseThrow(() -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + destAccountNumber));
+        CustomerAccount destAccount = customerAccountRepository.findByAccountNumber(destAccountNumber)
+                .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + destAccountNumber));
 
         if (sourceAccount.getBalance() < amount) {
-            throw new BankAccountExceptions(MessageConstants.INSUFFICIENT_BALANCE + sourceAccount.getBalance());
+            throw new CustomerAccountExceptions(MessageConstants.INSUFFICIENT_BALANCE + sourceAccount.getBalance());
         }
 
         sourceAccount.setBalance(sourceAccount.getBalance() - amount);
@@ -221,8 +239,8 @@ public class BankServiceImpl implements BankService {
         sourceAccount.setUpdated_at(currentTime);
         destAccount.setUpdated_at(currentTime);
 
-        bankAccountRepository.save(sourceAccount);
-        bankAccountRepository.save(destAccount);
+        customerAccountRepository.save(sourceAccount);
+        customerAccountRepository.save(destAccount);
 
         transactionService.recordTransaction(sourceAccountNumber, MessageConstants.TX_TRANSFER_OUT, amount, sourceAccount.getBalance());
         transactionService.recordTransaction(destAccountNumber, MessageConstants.TX_TRANSFER_IN, amount, destAccount.getBalance());

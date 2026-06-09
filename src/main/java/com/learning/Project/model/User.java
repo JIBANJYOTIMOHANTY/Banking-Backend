@@ -36,8 +36,8 @@ public class User implements Serializable {
     private String lastName;
 
     @OneToOne
-    @JoinColumn(name = "bank_account_id")
-    private BankAccount bankAccount;
+    @JoinColumn(name = "customer_account_id")
+    private CustomerAccount customerAccount;
 
     public User() {
     }
@@ -98,11 +98,11 @@ public class User implements Serializable {
         this.lastName = lastName;
     }
 
-    public BankAccount getBankAccount() {
-        return bankAccount;
+    public CustomerAccount getCustomerAccount() {
+        return customerAccount;
     }
 
-    public void setBankAccount(BankAccount bankAccount) {
-        this.bankAccount = bankAccount;
+    public void setCustomerAccount(CustomerAccount customerAccount) {
+        this.customerAccount = customerAccount;
     }
 }

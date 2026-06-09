@@ -1,6 +1,6 @@
 package com.learning.Project.actuator;
 
-import com.learning.Project.repository.BankAccountRepository;
+import com.learning.Project.repository.CustomerAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class BankSystemHealthIndicator implements HealthIndicator {
 
     @Autowired
-    private BankAccountRepository repository;
+    private CustomerAccountRepository repository;
 
     @Override
     public Health health() {

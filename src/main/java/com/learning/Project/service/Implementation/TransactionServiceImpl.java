@@ -1,9 +1,9 @@
 package com.learning.Project.service.Implementation;
 
 import com.learning.Project.constants.MessageConstants;
-import com.learning.Project.exceptions.BankAccountExceptions;
+import com.learning.Project.exceptions.CustomerAccountExceptions;
 import com.learning.Project.model.Transaction;
-import com.learning.Project.repository.BankAccountRepository;
+import com.learning.Project.repository.CustomerAccountRepository;
 import com.learning.Project.repository.TransactionRepository;
 import com.learning.Project.service.TransactionService;
 import java.time.LocalDateTime;
@@ -20,7 +20,7 @@ public class TransactionServiceImpl implements TransactionService {
     private TransactionRepository transactionRepository;
 
     @Autowired
-    private BankAccountRepository bankAccountRepository;
+    private CustomerAccountRepository customerAccountRepository;
 
     @Override
     public void recordTransaction(String accountNumber, String type, double amount, double postBalance) {
@@ -31,9 +31,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<Transaction> getTransactionHistory(String accountNumber, String date) {
-        bankAccountRepository.findByAccountNumber(accountNumber)
+        customerAccountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(
-                        () -> new BankAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+                        () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         if (date != null && !date.isBlank()) {
             return transactionRepository.findByAccountNumberAndTimestampStartingWithOrderByTimestampAsc(accountNumber, date);
         }

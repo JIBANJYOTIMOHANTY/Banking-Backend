@@ -9,8 +9,8 @@ import jakarta.persistence.Table;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "bank_accounts")
-public class BankAccount implements Serializable {
+@Table(name = "customer_accounts")
+public class CustomerAccount implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,16 +35,22 @@ public class BankAccount implements Serializable {
     private String nomineeName;
     private String nomineeRelation;
     private String address;
+    private String pan;
+    private String landmark;
+    private String city;
+    private String state;
+    private String country;
+    private String pincode;
 
-    @jakarta.persistence.OneToOne(mappedBy = "bankAccount", cascade = jakarta.persistence.CascadeType.ALL)
+    @jakarta.persistence.OneToOne(mappedBy = "customerAccount", cascade = jakarta.persistence.CascadeType.ALL)
     private User user;
 
     // No-arg constructor
-    public BankAccount() {
+    public CustomerAccount() {
     }
 
     // All-args constructor
-    public BankAccount(Long id, String accountNumber, String firstName, String lastName, double balance) {
+    public CustomerAccount(Long id, String accountNumber, String firstName, String lastName, double balance) {
         this.id = id;
         this.accountNumber = accountNumber;
         this.firstName = firstName;
@@ -53,7 +59,7 @@ public class BankAccount implements Serializable {
     }
 
     // Custom constructor
-    public BankAccount(String accountNumber, String firstName, String lastName, double balance) {
+    public CustomerAccount(String accountNumber, String firstName, String lastName, double balance) {
         this.accountNumber = accountNumber;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -195,5 +201,53 @@ public class BankAccount implements Serializable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getPan() {
+        return pan;
+    }
+
+    public void setPan(String pan) {
+        this.pan = pan;
+    }
+
+    public String getLandmark() {
+        return landmark;
+    }
+
+    public void setLandmark(String landmark) {
+        this.landmark = landmark;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
     }
 }

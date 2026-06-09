@@ -12,8 +12,8 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BankAccountExceptions.class)
-    public ResponseEntity<ApiResponse<Object>> handleBankAccountExceptions(BankAccountExceptions ex) {
+    @ExceptionHandler(CustomerAccountExceptions.class)
+    public ResponseEntity<ApiResponse<Object>> handleCustomerAccountExceptions(CustomerAccountExceptions ex) {
         ApiResponse<Object> response = new ApiResponse<>(1, ex.getMessage(), List.of());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
