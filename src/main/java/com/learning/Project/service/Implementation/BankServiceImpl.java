@@ -148,6 +148,33 @@ public class BankServiceImpl implements BankService {
         if (account.getLastName() != null && !account.getLastName().isBlank()) {
             existingAccount.setLastName(account.getLastName());
         }
+        if (account.getDob() != null && !account.getDob().isBlank()) {
+            existingAccount.setDob(account.getDob());
+        }
+        if (account.getEmail() != null && !account.getEmail().isBlank()) {
+            existingAccount.setEmail(account.getEmail());
+        }
+        if (account.getMobileNumber() != null && !account.getMobileNumber().isBlank()) {
+            existingAccount.setMobileNumber(account.getMobileNumber());
+        }
+        if (account.getGovtId() != null && !account.getGovtId().isBlank()) {
+            existingAccount.setGovtId(account.getGovtId());
+        }
+        if (account.getGovtIdType() != null && !account.getGovtIdType().isBlank()) {
+            existingAccount.setGovtIdType(account.getGovtIdType());
+        }
+        if (account.getOccupation() != null && !account.getOccupation().isBlank()) {
+            existingAccount.setOccupation(account.getOccupation());
+        }
+        if (account.getNomineeName() != null && !account.getNomineeName().isBlank()) {
+            existingAccount.setNomineeName(account.getNomineeName());
+        }
+        if (account.getNomineeRelation() != null && !account.getNomineeRelation().isBlank()) {
+            existingAccount.setNomineeRelation(account.getNomineeRelation());
+        }
+        if (account.getAddress() != null && !account.getAddress().isBlank()) {
+            existingAccount.setAddress(account.getAddress());
+        }
         existingAccount.setUpdated_at(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         return bankAccountRepository.save(existingAccount);
     }

@@ -26,6 +26,16 @@ public class BankAccount implements Serializable {
     private String created_at;
     private String updated_at;
 
+    private String dob;
+    private String email;
+    private String mobileNumber;
+    private String govtId;
+    private String govtIdType;
+    private String occupation;
+    private String nomineeName;
+    private String nomineeRelation;
+    private String address;
+
     @jakarta.persistence.OneToOne(mappedBy = "bankAccount", cascade = jakarta.persistence.CascadeType.ALL)
     private User user;
 
@@ -113,5 +123,77 @@ public class BankAccount implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getDob() {
+        return dob;
+    }
+
+    public void setDob(String dob) {
+        this.dob = dob;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
+
+    public String getGovtId() {
+        return govtId;
+    }
+
+    public void setGovtId(String govtId) {
+        this.govtId = govtId;
+    }
+
+    public String getGovtIdType() {
+        return govtIdType;
+    }
+
+    public void setGovtIdType(String govtIdType) {
+        this.govtIdType = govtIdType;
+    }
+
+    public String getOccupation() {
+        return occupation;
+    }
+
+    public void setOccupation(String occupation) {
+        this.occupation = occupation;
+    }
+
+    public String getNomineeName() {
+        return nomineeName;
+    }
+
+    public void setNomineeName(String nomineeName) {
+        this.nomineeName = nomineeName;
+    }
+
+    public String getNomineeRelation() {
+        return nomineeRelation;
+    }
+
+    public void setNomineeRelation(String nomineeRelation) {
+        this.nomineeRelation = nomineeRelation;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }
