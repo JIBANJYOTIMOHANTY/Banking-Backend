@@ -16,7 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/bank")
+@RequestMapping("/api/v1/bank/customer")
 @Tag(name = "Bank Accounts", description = "Operations related to bank accounts")
 public class CustomerController {
 
@@ -35,7 +35,8 @@ public class CustomerController {
                     .body(new ApiResponse<>(1, validationError.get(), List.of()));
         }
         CustomerAccount savedAccount = customerService.createAccount(account);
-        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.SAVED_SUCCESS, List.of(savedAccount));
+        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.SAVED_SUCCESS,
+                List.of(savedAccount));
         return ResponseEntity.ok(response);
     }
 
@@ -63,7 +64,8 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<CustomerAccount>> deposit(@PathVariable String accountNumber,
             @PathVariable double amount) {
         CustomerAccount account = customerService.deposit(accountNumber, amount);
-        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.DEPOSITED_SUCCESS, List.of(account));
+        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.DEPOSITED_SUCCESS,
+                List.of(account));
         return ResponseEntity.ok(response);
     }
 
@@ -73,7 +75,8 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<CustomerAccount>> withdraw(@PathVariable String accountNumber,
             @PathVariable double amount) {
         CustomerAccount account = customerService.withdraw(accountNumber, amount);
-        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.WITHDRAWN_SUCCESS, List.of(account));
+        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.WITHDRAWN_SUCCESS,
+                List.of(account));
         return ResponseEntity.ok(response);
     }
 
