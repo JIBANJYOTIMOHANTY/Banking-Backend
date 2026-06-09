@@ -39,8 +39,9 @@ public class TransactionController {
             }
         }
         List<Transaction> transactions = transactionService.getTransactionHistory(accountNumber, date);
-        String message = transactions.isEmpty() ? MessageConstants.NO_TRANSACTIONS_FOUND : MessageConstants.TRANSACTIONS_RETRIEVED_SUCCESS;
-        ApiResponse<Transaction> response = new ApiResponse<>(0, message, transactions);
+        String message = transactions.isEmpty() ? MessageConstants.NO_TRANSACTIONS_FOUND
+                : MessageConstants.TRANSACTIONS_RETRIEVED_SUCCESS;
+        ApiResponse<Transaction> response = new ApiResponse<>(0, message, transactions, transactions.size());
         return ResponseEntity.ok(response);
     }
 }

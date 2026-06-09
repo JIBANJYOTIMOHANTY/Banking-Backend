@@ -5,6 +5,7 @@ import java.util.List;
 public class ApiResponse<T> {
     private int status;
     private String message;
+    private int totalRecords;
     private List<T> data;
 
     public ApiResponse() {
@@ -14,6 +15,21 @@ public class ApiResponse<T> {
         this.status = status;
         this.message = message;
         this.data = data;
+    }
+
+    public ApiResponse(int status, String message, List<T> data, int totalRecords) {
+        this.status = status;
+        this.message = message;
+        this.data = data;
+        this.totalRecords = totalRecords;
+    }
+
+    public int getTotalRecords() {
+        return totalRecords;
+    }
+
+    public void setTotalRecords(int totalRecords) {
+        this.totalRecords = totalRecords;
     }
 
     public int getStatus() {
