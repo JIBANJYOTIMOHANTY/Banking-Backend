@@ -1,6 +1,6 @@
-# Bank Management API (Banking-Backend)
+# Customer Account Management API (Banking-Backend)
 
-A modern, high-performance, and secure banking backend system built using **Spring Boot 4.0.6**, **Java 25**, **MySQL**, and **Redis**. This project exposes a complete suite of RESTful endpoints to manage bank accounts, secure endpoints using JWT authentication, log transactional events, perform high-speed caching, and enforce dynamic rate limiting.
+A modern, high-performance, and secure banking backend system built using **Spring Boot 4.0.6**, **Java 25**, **MySQL**, and **Redis**. This project exposes a complete suite of RESTful endpoints to manage customer accounts, secure endpoints using JWT authentication, log transactional events, perform high-speed caching, and enforce dynamic rate limiting.
 
 ---
 
@@ -10,7 +10,7 @@ A modern, high-performance, and secure banking backend system built using **Spri
     *   Authentication via JWT using JSON Web Tokens (JJWT 0.12.6).
     *   Stateful logout functionality enabled by registering active sessions and blacklisting tokens in Redis with sliding TTL.
     *   Single active session enforcement (logging in from a new client terminates the user's previous active JWT token session).
-*   **Comprehensive Bank Account Operations:**
+*   **Comprehensive Customer Account Operations:**
     *   Creation of accounts (automatically synchronized during user registration) with automated sequential account number generation (`ACC0001`, `ACC0002`, etc.).
     *   Support for deposits, withdrawals, profile updates, and direct account deletion.
     *   Transactional money transfers between accounts ensuring ACID compliance via Spring's `@Transactional`.
@@ -171,18 +171,18 @@ All API endpoints are prefixed with `/api/v1`.
 | `/login` | `POST` | No | Authenticates user credentials and returns a JWT token. |
 | `/logout` | `POST` | Yes | Invalidates the current JWT session in Redis. |
 
-### 🏦 Bank Account Operations (`/api/v1/bank`)
+### 🏦 Customer Account Operations (`/api/v1/bank/customer`)
 
 | Endpoint | Method | Auth Required | Rate Limited | Description |
 | :--- | :--- | :---: | :---: | :--- |
-| `/` | `POST` | Yes | Yes | Creates a new bank account with custom details. |
-| `/` | `GET` | Yes | No | Retrieves all active bank accounts. |
-| `/{accountNumber}` | `GET` | Yes | Yes | Retrieves details of a specific bank account. |
-| `/deposit/{accountNumber}/{amount}` | `PUT` | Yes | Yes | Deposits money into the specified bank account. |
-| `/withdraw/{accountNumber}/{amount}` | `PUT` | Yes | Yes | Withdraws money from the bank account. |
+| `/` | `POST` | Yes | Yes | Creates a new customer account with custom details. |
+| `/` | `GET` | Yes | No | Retrieves all active customer accounts. |
+| `/{accountNumber}` | `GET` | Yes | Yes | Retrieves details of a specific customer account. |
+| `/deposit/{accountNumber}/{amount}` | `PUT` | Yes | Yes | Deposits money into the specified customer account. |
+| `/withdraw/{accountNumber}/{amount}` | `PUT` | Yes | Yes | Withdraws money from the customer account. |
 | `/transfer/{sourceAcc}/{destAcc}/{amount}` | `PUT` | Yes | Yes | Transfers money from a source account to a destination account. |
-| `/` | `PATCH` | Yes | No | Updates metadata (first/last name) of an account. |
-| `/{accountNumber}` | `DELETE` | Yes | No | Deletes a bank account and cleans associated data. |
+| `/` | `PATCH` | Yes | No | Updates metadata of an account. |
+| `/{accountNumber}` | `DELETE` | Yes | No | Deletes a customer account and cleans associated data. |
 
 ### 📈 Transactions History (`/api/v1/bank`)
 
