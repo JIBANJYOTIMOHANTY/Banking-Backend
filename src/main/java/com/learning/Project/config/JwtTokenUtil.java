@@ -18,6 +18,12 @@ import java.util.function.Function;
 @Component
 public class JwtTokenUtil {
 
+    private final String bootId = java.util.UUID.randomUUID().toString();
+
+    public String getBootId() {
+        return this.bootId;
+    }
+
     @Value("${jwt.secret:mySecureRandomSecretKeyThatIsAtLeast32BytesLongForHS256Security}")
     private String secret;
 
@@ -58,8 +64,17 @@ public class JwtTokenUtil {
         return expiration.before(new Date());
     }
 
+    public String getBootIdFromToken(String token) {
+        try {
+            return getClaimFromToken(token, claims -> claims.get("bootId", String.class));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("bootId", bootId);
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
@@ -75,6 +90,9 @@ public class JwtTokenUtil {
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String tokenBootId = getBootIdFromToken(token);
+        return (username.equals(userDetails.getUsername()) 
+                && !isTokenExpired(token)
+                && bootId.equals(tokenBootId));
     }
 }
