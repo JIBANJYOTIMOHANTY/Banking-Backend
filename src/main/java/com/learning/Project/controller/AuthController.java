@@ -85,6 +85,44 @@ public class AuthController {
         return ResponseEntity.ok(new ApiResponse<>(0, "Login successful", List.of(authResponse)));
     }
 
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh JWT token", description = "Generates a new JWT token using the existing valid token.")
+    public ResponseEntity<ApiResponse<AuthResponse>> refresh(HttpServletRequest request) {
+        String requestTokenHeader = request.getHeader("Authorization");
+        if (requestTokenHeader != null && requestTokenHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            String jwtToken = requestTokenHeader.substring(7).trim();
+            if (jwtToken.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                jwtToken = jwtToken.substring(7).trim();
+            }
+            try {
+                String sessionKey = "jwt_session:" + jwtToken;
+                Boolean hasSession = redisTemplate.hasKey(sessionKey);
+                if (Boolean.TRUE.equals(hasSession)) {
+                    String username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    String newToken = jwtTokenUtil.generateToken(userDetails);
+                    
+                    redisTemplate.delete(sessionKey);
+                    String activeTokenKey = "user_active_token:" + username;
+                    redisTemplate.delete(activeTokenKey);
+                    
+                    String newSessionKey = "jwt_session:" + newToken;
+                    redisTemplate.opsForValue().set(newSessionKey, username, jwtTokenUtil.getValidityDuration());
+                    redisTemplate.opsForValue().set(activeTokenKey, newToken, jwtTokenUtil.getValidityDuration());
+                    
+                    AuthResponse authResponse = new AuthResponse(
+                            newToken,
+                            jwtTokenUtil.getValidityDuration().toMillis(),
+                            username);
+                    return ResponseEntity.ok(new ApiResponse<>(0, "Token refreshed successfully", List.of(authResponse)));
+                }
+            } catch (Exception e) {
+                // Ignore exceptions and fall through to return 401
+            }
+        }
+        return ResponseEntity.status(401).body(new ApiResponse<>(1, "Invalid or expired token", List.of()));
+    }
+
     @PostMapping("/logout")
     @Operation(summary = "Logout user and invalidate JWT", description = "Logs out the user and invalidates the JWT session in Redis.")
     public ResponseEntity<ApiResponse<String>> logout(HttpServletRequest request) {

@@ -30,7 +30,7 @@ public class SecurityConfig {
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
-                                .cors(cors -> cors.disable())
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .csrf(csrf -> csrf.disable())
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
@@ -54,7 +54,7 @@ public class SecurityConfig {
         }
 
         @Bean
-        public org.springframework.web.filter.CorsFilter corsFilter() {
+        public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOrigins(
                                 List.of("http://localhost:4200", "http://localhost:4201", "http://localhost:4300"));
@@ -64,7 +64,7 @@ public class SecurityConfig {
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
-                return new org.springframework.web.filter.CorsFilter(source);
+                return source;
         }
 
         @Bean

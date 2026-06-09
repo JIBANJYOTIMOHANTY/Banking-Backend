@@ -101,7 +101,7 @@ public class OpenApiConfig {
                                                                 "        return originalFetch.apply(this, args).then(response => {\n"
                                                                 +
                                                                 "            const url = args[0];\n" +
-                                                                "            if (typeof url === 'string' && url.includes('/api/v1/auth/login')) {\n"
+                                                                "            if (typeof url === 'string' && (url.includes('/api/v1/auth/login') || url.includes('/api/v1/auth/refresh'))) {\n"
                                                                 +
                                                                 "                const clone = response.clone();\n" +
                                                                 "                clone.json().then(data => {\n" +
@@ -138,7 +138,7 @@ public class OpenApiConfig {
                                                                 "        return originalFetch.apply(this, args).then(response => {\n"
                                                                 +
                                                                 "            const url = args[0];\n" +
-                                                                "            if (typeof url === 'string' && url.includes('/api/v1/auth/login')) {\n"
+                                                                "            if (typeof url === 'string' && (url.includes('/api/v1/auth/login') || url.includes('/api/v1/auth/refresh'))) {\n"
                                                                 +
                                                                 "                const clone = response.clone();\n" +
                                                                 "                clone.json().then(data => {\n" +
