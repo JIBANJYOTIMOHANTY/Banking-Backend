@@ -21,4 +21,6 @@ public interface CustomerService {
     void deleteAccount(String accountNumber);
 
     void transfer(String sourceAccountNumber, String destAccountNumber, double amount);
+
+    List<CustomerAccount> searchAccounts(String query);
 }

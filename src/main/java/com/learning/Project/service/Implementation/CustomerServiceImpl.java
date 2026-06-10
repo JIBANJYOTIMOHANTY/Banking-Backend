@@ -245,4 +245,9 @@ public class CustomerServiceImpl implements CustomerService {
         transactionService.recordTransaction(sourceAccountNumber, MessageConstants.TX_TRANSFER_OUT, amount, sourceAccount.getBalance());
         transactionService.recordTransaction(destAccountNumber, MessageConstants.TX_TRANSFER_IN, amount, destAccount.getBalance());
     }
+
+    @Override
+    public List<CustomerAccount> searchAccounts(String query) {
+        return customerAccountRepository.searchAccounts(query);
+    }
 }
