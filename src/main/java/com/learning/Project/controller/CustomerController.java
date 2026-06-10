@@ -139,4 +139,31 @@ public class CustomerController {
         ApiResponse<String> response = new ApiResponse<>(0, MessageConstants.TRANSFER_SUCCESS, List.of());
         return ResponseEntity.ok(response);
     }
+
+    public static class SearchRequest {
+        private String query;
+
+        public String getQuery() {
+            return query;
+        }
+
+        public void setQuery(String query) {
+            this.query = query;
+        }
+    }
+
+    @PostMapping("/search")
+    @Operation(summary = "Search bank accounts via POST payload", description = "Retrieves active bank accounts matching the search query in the request body.")
+    public ResponseEntity<ApiResponse<CustomerAccount>> searchAccounts(@RequestBody SearchRequest request) {
+        String query = request != null ? request.getQuery() : null;
+        List<CustomerAccount> accounts;
+        if (query != null && !query.trim().isEmpty()) {
+            accounts = customerService.searchAccounts(query.trim());
+        } else {
+            accounts = customerService.getAllAccounts();
+        }
+        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.RETRIEVED_SUCCESS, accounts,
+                accounts.size());
+        return ResponseEntity.ok(response);
+    }
 }
