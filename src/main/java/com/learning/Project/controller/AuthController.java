@@ -102,7 +102,7 @@ public class AuthController {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     String newToken = jwtTokenUtil.generateToken(userDetails);
                     
-                    redisTemplate.delete(sessionKey);
+                    redisTemplate.expire(sessionKey, java.time.Duration.ofSeconds(10));
                     String activeTokenKey = "user_active_token:" + username;
                     redisTemplate.delete(activeTokenKey);
                     
@@ -117,7 +117,7 @@ public class AuthController {
                     return ResponseEntity.ok(new ApiResponse<>(0, "Token refreshed successfully", List.of(authResponse)));
                 }
             } catch (Exception e) {
-                // Ignore exceptions and fall through to return 401
+                e.printStackTrace();
             }
         }
         return ResponseEntity.status(401).body(new ApiResponse<>(1, "Invalid or expired token", List.of()));
