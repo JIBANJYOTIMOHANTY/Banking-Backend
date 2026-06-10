@@ -42,14 +42,16 @@ public class CustomerController {
 
     @GetMapping
     @Operation(summary = "Get all bank accounts", description = "Retrieves a list of all active bank accounts, optionally filtered by search query.")
-    public ResponseEntity<ApiResponse<CustomerAccount>> getAllAccounts(@RequestParam(value = "query", required = false) String query) {
+    public ResponseEntity<ApiResponse<CustomerAccount>> getAllAccounts(
+            @RequestParam(value = "query", required = false) String query) {
         List<CustomerAccount> accounts;
         if (query != null && !query.trim().isEmpty()) {
             accounts = customerService.searchAccounts(query.trim());
         } else {
             accounts = customerService.getAllAccounts();
         }
-        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.RETRIEVED_SUCCESS, accounts);
+        ApiResponse<CustomerAccount> response = new ApiResponse<>(0, MessageConstants.RETRIEVED_SUCCESS, accounts,
+                accounts.size());
         return ResponseEntity.ok(response);
     }
 
