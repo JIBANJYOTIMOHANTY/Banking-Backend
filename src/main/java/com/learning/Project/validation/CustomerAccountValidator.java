@@ -58,9 +58,6 @@ public class CustomerAccountValidator {
         if (checks.contains("govtIdType") && (account.getGovtIdType() == null || account.getGovtIdType().isBlank())) {
             return Optional.of("Government ID type is mandatory");
         }
-        if (checks.contains("govtId") && (account.getGovtId() == null || account.getGovtId().isBlank())) {
-            return Optional.of("Government ID number is mandatory");
-        }
         if (checks.contains("dob") && (account.getDob() == null || account.getDob().isBlank())) {
             return Optional.of("Date of birth is mandatory");
         }
@@ -87,8 +84,23 @@ public class CustomerAccountValidator {
                 return Optional.of("Pincode must be exactly 6 digits");
             }
         }
-        if (checks.contains("balance") && account.getBalance() <= 0) {
-            return Optional.of(MessageConstants.BALANCE_IS_MANDATORY);
+        if (checks.contains("balance")) {
+            if (account.getBalance() < 0) {
+                return Optional.of("Initial deposit/Balance cannot be a negative value");
+            }
+        }
+        if (checks.contains("govtId")) {
+            if (account.getGovtId() == null || account.getGovtId().isBlank()) {
+                return Optional.of("Government ID number is mandatory");
+            }
+            if ("aadhar".equalsIgnoreCase(account.getGovtIdType()) && !account.getGovtId().matches("^[0-9]{12}$")) {
+                return Optional.of("Aadhar number must be exactly 12 digits (numbers only)");
+            }
+        }
+        if (account.getNomineeName() != null && !account.getNomineeName().isEmpty()) {
+            if (!account.getNomineeName().matches("^[a-zA-Z\\s]*$")) {
+                return Optional.of("Nominee name must contain only alphabets and spaces");
+            }
         }
         return Optional.empty();
     }
@@ -170,8 +182,14 @@ public class CustomerAccountValidator {
                 return Optional.of("Mobile number must be in format +{CountryCode}{10Digits} (e.g. +919876543210)");
             }
         }
-        if (hasGovtId && account.getGovtId().isBlank()) {
-            return Optional.of("Government ID must not be blank");
+        if (hasGovtId) {
+            if (account.getGovtId().isBlank()) {
+                return Optional.of("Government ID must not be blank");
+            }
+            String currentType = hasGovtIdType ? account.getGovtIdType() : null;
+            if ("aadhar".equalsIgnoreCase(currentType) && !account.getGovtId().matches("^[0-9]{12}$")) {
+                return Optional.of("Aadhar number must be exactly 12 digits (numbers only)");
+            }
         }
         if (hasGovtIdType && account.getGovtIdType().isBlank()) {
             return Optional.of("Government ID type must not be blank");
@@ -179,8 +197,10 @@ public class CustomerAccountValidator {
         if (hasOccupation && account.getOccupation().isBlank()) {
             return Optional.of("Occupation must not be blank");
         }
-        if (hasNomineeName && account.getNomineeName().isBlank()) {
-            return Optional.of("Nominee name must not be blank");
+        if (hasNomineeName) {
+            if (!account.getNomineeName().matches("^[a-zA-Z\\s]*$")) {
+                return Optional.of("Nominee name must contain only alphabets and spaces");
+            }
         }
         if (hasNomineeRelation && account.getNomineeRelation().isBlank()) {
             return Optional.of("Nominee relation must not be blank");
