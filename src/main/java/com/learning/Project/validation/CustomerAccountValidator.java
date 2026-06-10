@@ -31,11 +31,21 @@ public class CustomerAccountValidator {
         if (checks.contains("accountNumber") && (account.getAccountNumber() == null || account.getAccountNumber().isBlank())) {
             return Optional.of(MessageConstants.INVALID_ACCOUNT_NUMBER);
         }
-        if (checks.contains("firstName") && (account.getFirstName() == null || account.getFirstName().isBlank())) {
-            return Optional.of(MessageConstants.FIRST_NAME_IS_MANDATORY);
+        if (checks.contains("firstName")) {
+            if (account.getFirstName() == null || account.getFirstName().isBlank()) {
+                return Optional.of(MessageConstants.FIRST_NAME_IS_MANDATORY);
+            }
+            if (!account.getFirstName().matches("^[a-zA-Z\\s]+$")) {
+                return Optional.of("First name must contain only alphabets and spaces");
+            }
         }
-        if (checks.contains("lastName") && (account.getLastName() == null || account.getLastName().isBlank())) {
-            return Optional.of(MessageConstants.LAST_NAME_IS_MANDATORY);
+        if (checks.contains("lastName")) {
+            if (account.getLastName() == null || account.getLastName().isBlank()) {
+                return Optional.of(MessageConstants.LAST_NAME_IS_MANDATORY);
+            }
+            if (!account.getLastName().matches("^[a-zA-Z\\s]+$")) {
+                return Optional.of("Last name must contain only alphabets and spaces");
+            }
         }
         if (checks.contains("mobileNumber")) {
             if (account.getMobileNumber() == null || account.getMobileNumber().isBlank()) {
@@ -130,11 +140,21 @@ public class CustomerAccountValidator {
             return Optional.of(MessageConstants.NO_UPDATE_DATA_PROVIDED);
         }
 
-        if (hasFirstName && account.getFirstName().isBlank()) {
-            return Optional.of(MessageConstants.FIRST_NAME_IS_MANDATORY);
+        if (hasFirstName) {
+            if (account.getFirstName().isBlank()) {
+                return Optional.of(MessageConstants.FIRST_NAME_IS_MANDATORY);
+            }
+            if (!account.getFirstName().matches("^[a-zA-Z\\s]+$")) {
+                return Optional.of("First name must contain only alphabets and spaces");
+            }
         }
-        if (hasLastName && account.getLastName().isBlank()) {
-            return Optional.of(MessageConstants.LAST_NAME_IS_MANDATORY);
+        if (hasLastName) {
+            if (account.getLastName().isBlank()) {
+                return Optional.of(MessageConstants.LAST_NAME_IS_MANDATORY);
+            }
+            if (!account.getLastName().matches("^[a-zA-Z\\s]+$")) {
+                return Optional.of("Last name must contain only alphabets and spaces");
+            }
         }
         if (hasDob && account.getDob().isBlank()) {
             return Optional.of("Date of birth must not be blank");
