@@ -29,6 +29,9 @@ public class CustomerAccount implements Serializable {
     @Column(name = "is_deleted", nullable = false)
     private int isDeleted = 0;
 
+    @Column(name = "is_frozen", nullable = false)
+    private int isFrozen = 0;
+
     private String dob;
     private String email;
     private String mobileNumber;
@@ -132,6 +135,14 @@ public class CustomerAccount implements Serializable {
 
     public void setIsDeleted(int isDeleted) {
         this.isDeleted = isDeleted;
+    }
+
+    public int getIsFrozen() {
+        return isFrozen;
+    }
+
+    public void setIsFrozen(int isFrozen) {
+        this.isFrozen = isFrozen;
     }
 
     public User getUser() {

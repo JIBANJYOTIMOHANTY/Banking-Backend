@@ -166,4 +166,26 @@ public class CustomerController {
                 accounts.size());
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{accountNumber}/freeze")
+    @Operation(summary = "Freeze customer account", description = "Freezes the account identified by the account number to block transactions.")
+    public ResponseEntity<ApiResponse<String>> freezeAccount(@PathVariable String accountNumber) {
+        if (accountNumber.matches("ACC[0-9]+") == false) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(1, MessageConstants.INVALID_ACCOUNT_NUMBER, List.of()));
+        }
+        customerService.freezeAccount(accountNumber);
+        return ResponseEntity.ok(new ApiResponse<>(0, "Account frozen successfully", List.of()));
+    }
+
+    @PutMapping("/{accountNumber}/unfreeze")
+    @Operation(summary = "Unfreeze customer account", description = "Unfreezes the account identified by the account number to allow transactions.")
+    public ResponseEntity<ApiResponse<String>> unfreezeAccount(@PathVariable String accountNumber) {
+        if (accountNumber.matches("ACC[0-9]+") == false) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(1, MessageConstants.INVALID_ACCOUNT_NUMBER, List.of()));
+        }
+        customerService.unfreezeAccount(accountNumber);
+        return ResponseEntity.ok(new ApiResponse<>(0, "Account unfrozen successfully", List.of()));
+    }
 }

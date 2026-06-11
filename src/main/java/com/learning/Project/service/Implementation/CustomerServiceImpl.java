@@ -21,6 +21,8 @@ import com.learning.Project.exceptions.CustomerAccountExceptions;
 import com.learning.Project.constants.MessageConstants;
 import io.micrometer.core.instrument.MeterRegistry;
 import com.learning.Project.service.TransactionService;
+import com.learning.Project.repository.BroadcastAlertRepository;
+import com.learning.Project.model.BroadcastAlert;
 
 @Service
 public class CustomerServiceImpl implements CustomerService {
@@ -33,6 +35,10 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     private MeterRegistry meterRegistry;
+
+    @Autowired
+    private BroadcastAlertRepository broadcastAlertRepository;
+
 
     private synchronized String generateAccountNumber() {
         Optional<CustomerAccount> latestAccount = customerAccountRepository.findFirstByOrderByIdDesc();
@@ -86,9 +92,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     @CachePut(value = "bankAccounts", key = "#accountNumber")
     public CustomerAccount deposit(String accountNumber, double amount) {
+        checkLockoutStatus();
         CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+        if (account.getIsFrozen() == 1) {
+            throw new CustomerAccountExceptions("Account is frozen.");
+        }
         account.setBalance(account.getBalance() + amount);
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         account.setUpdated_at(currentTime);
@@ -103,9 +113,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     @CachePut(value = "bankAccounts", key = "#accountNumber")
     public CustomerAccount withdraw(String accountNumber, double amount) {
+        checkLockoutStatus();
         CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+        if (account.getIsFrozen() == 1) {
+            throw new CustomerAccountExceptions("Account is frozen.");
+        }
         if (account.getBalance() < amount) {
             throw new CustomerAccountExceptions(MessageConstants.INSUFFICIENT_BALANCE + account.getBalance());
         }
@@ -216,6 +230,7 @@ public class CustomerServiceImpl implements CustomerService {
         @CacheEvict(value = "bankAccounts", key = "#destAccountNumber")
     })
     public void transfer(String sourceAccountNumber, String destAccountNumber, double amount) {
+        checkLockoutStatus();
         if (amount <= 0) {
             throw new CustomerAccountExceptions(MessageConstants.INVALID_TRANSFER_AMOUNT);
         }
@@ -228,6 +243,13 @@ public class CustomerServiceImpl implements CustomerService {
         
         CustomerAccount destAccount = customerAccountRepository.findByAccountNumberAndIsDeleted(destAccountNumber, 0)
                 .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + destAccountNumber));
+
+        if (sourceAccount.getIsFrozen() == 1) {
+            throw new CustomerAccountExceptions("Source account is frozen.");
+        }
+        if (destAccount.getIsFrozen() == 1) {
+            throw new CustomerAccountExceptions("Destination account is frozen.");
+        }
 
         if (sourceAccount.getBalance() < amount) {
             throw new CustomerAccountExceptions(MessageConstants.INSUFFICIENT_BALANCE + sourceAccount.getBalance());
@@ -250,5 +272,40 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerAccount> searchAccounts(String query) {
         return customerAccountRepository.searchAccounts(query);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "bankAccounts", key = "#accountNumber")
+    public void freezeAccount(String accountNumber) {
+        CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
+                .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+        if (account.getIsFrozen() == 1) {
+            throw new CustomerAccountExceptions("Account is already frozen.");
+        }
+        account.setIsFrozen(1);
+        customerAccountRepository.save(account);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "bankAccounts", key = "#accountNumber")
+    public void unfreezeAccount(String accountNumber) {
+        CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
+                .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+        if (account.getIsFrozen() == 0) {
+            throw new CustomerAccountExceptions("Account is already active.");
+        }
+        account.setIsFrozen(0);
+        customerAccountRepository.save(account);
+    }
+
+    private void checkLockoutStatus() {
+        List<BroadcastAlert> activeAlerts = broadcastAlertRepository.findByIsActive(1);
+        for (BroadcastAlert alert : activeAlerts) {
+            if ("CRITICAL".equalsIgnoreCase(alert.getAlertType())) {
+                throw new CustomerAccountExceptions("Transactions are disabled during system maintenance.");
+            }
+        }
     }
 }

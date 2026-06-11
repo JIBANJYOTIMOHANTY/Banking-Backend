@@ -23,4 +23,8 @@ public interface CustomerService {
     void transfer(String sourceAccountNumber, String destAccountNumber, double amount);
 
     List<CustomerAccount> searchAccounts(String query);
+
+    void freezeAccount(String accountNumber);
+
+    void unfreezeAccount(String accountNumber);
 }
