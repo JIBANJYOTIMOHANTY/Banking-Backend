@@ -10,4 +10,6 @@ public interface TransactionService {
     List<Transaction> getTransactionHistory(String accountNumber, String date);
 
     void deleteTransactions(String accountNumber);
+
+    List<Transaction> getAllTransactions();
 }

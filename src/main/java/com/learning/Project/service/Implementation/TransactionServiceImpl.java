@@ -45,4 +45,9 @@ public class TransactionServiceImpl implements TransactionService {
     public void deleteTransactions(String accountNumber) {
         transactionRepository.deleteByAccountNumber(accountNumber);
     }
+
+    @Override
+    public List<Transaction> getAllTransactions() {
+        return transactionRepository.findAll();
+    }
 }

@@ -44,4 +44,13 @@ public class TransactionController {
         ApiResponse<Transaction> response = new ApiResponse<>(0, message, transactions, transactions.size());
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/transactions")
+    @Operation(summary = "Get all system transactions", description = "Retrieves a list of all transactions across all customer accounts.")
+    public ResponseEntity<ApiResponse<Transaction>> getAllTransactions() {
+        List<Transaction> transactions = transactionService.getAllTransactions();
+        ApiResponse<Transaction> response = new ApiResponse<>(0, MessageConstants.TRANSACTIONS_RETRIEVED_SUCCESS,
+                transactions, transactions.size());
+        return ResponseEntity.ok(response);
+    }
 }
