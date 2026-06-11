@@ -8,6 +8,7 @@ import com.learning.Project.model.User;
 import com.learning.Project.service.UserService;
 import com.learning.Project.config.JwtTokenUtil;
 import com.learning.Project.service.CustomUserDetailsService;
+import com.learning.Project.service.SessionLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class AuthController {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Autowired
+    private SessionLogService sessionLogService;
+
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Registers a new user and automatically creates an associated bank account.")
     public ResponseEntity<ApiResponse<User>> register(@RequestBody RegisterRequest request) {
@@ -55,7 +59,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Authenticate user and get JWT", description = "Logs in a user, returning a JWT token valid for 10 minutes of activity.")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request, HttpServletRequest servletRequest) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
@@ -98,6 +102,24 @@ public class AuthController {
                 firstName,
                 lastName,
                 role);
+
+        try {
+            String userAgent = servletRequest.getHeader("User-Agent");
+            String ipAddress = servletRequest.getRemoteAddr();
+            if ("0:0:0:0:0:0:0:1".equals(ipAddress)) {
+                ipAddress = "127.0.0.1";
+            }
+            sessionLogService.logActivity(
+                    canonicalUsername,
+                    getBrowserAndOs(userAgent),
+                    getDeviceIcon(userAgent),
+                    ipAddress,
+                    "Admin logged in successfully",
+                    "Active"
+            );
+        } catch (Exception e) {
+            // Ignore logging failures to avoid blocking login flow
+        }
 
         return ResponseEntity.ok(new ApiResponse<>(0, "Login successful", List.of(authResponse)));
     }
@@ -148,6 +170,23 @@ public class AuthController {
                             firstName,
                             lastName,
                             role);
+
+                    try {
+                        String userAgent = request.getHeader("User-Agent");
+                        String ipAddress = request.getRemoteAddr();
+                        if ("0:0:0:0:0:0:0:1".equals(ipAddress)) {
+                            ipAddress = "127.0.0.1";
+                        }
+                        sessionLogService.logActivity(
+                                username,
+                                getBrowserAndOs(userAgent),
+                                getDeviceIcon(userAgent),
+                                ipAddress,
+                                "Admin session token refreshed",
+                                "Active"
+                        );
+                    } catch (Exception e) {}
+
                     return ResponseEntity.ok(new ApiResponse<>(0, "Token refreshed successfully", List.of(authResponse)));
                 }
             } catch (Exception e) {
@@ -180,6 +219,22 @@ public class AuthController {
                     if (jwtToken.equals(activeToken)) {
                         redisTemplate.delete(activeTokenKey);
                     }
+                    try {
+                        String userAgent = request.getHeader("User-Agent");
+                        String ipAddress = request.getRemoteAddr();
+                        if ("0:0:0:0:0:0:0:1".equals(ipAddress)) {
+                            ipAddress = "127.0.0.1";
+                        }
+                        sessionLogService.logActivity(
+                                username,
+                                getBrowserAndOs(userAgent),
+                                getDeviceIcon(userAgent),
+                                ipAddress,
+                                "Admin logged out successfully",
+                                "Terminated"
+                        );
+                    } catch (Exception e) {}
+
                     return ResponseEntity
                             .ok(new ApiResponse<>(0, "Logout successful", List.of("Session invalidated successfully")));
                 }
@@ -189,5 +244,44 @@ public class AuthController {
             }
         }
         return ResponseEntity.badRequest().body(new ApiResponse<>(1, "Invalid or missing token", List.of()));
+    }
+
+    private String getBrowserAndOs(String userAgent) {
+        if (userAgent == null || userAgent.isEmpty()) {
+            return "Chrome (Windows 11)";
+        }
+        String browser = "Chrome";
+        String os = "Windows 11";
+        
+        if (userAgent.contains("Win")) {
+            if (userAgent.contains("Windows NT 10.0")) os = "Windows 11";
+            else os = "Windows";
+        } else if (userAgent.contains("Mac")) {
+            if (userAgent.contains("iPhone") || userAgent.contains("iPad")) os = "iOS";
+            else os = "macOS";
+        } else if (userAgent.contains("X11") || userAgent.contains("Linux")) {
+            os = "Linux";
+        } else if (userAgent.contains("Android")) {
+            os = "Android";
+        }
+
+        if (userAgent.contains("Chrome") && !userAgent.contains("Chromium") && !userAgent.contains("Edg")) {
+            browser = "Chrome";
+        } else if (userAgent.contains("Safari") && !userAgent.contains("Chrome") && !userAgent.contains("Chromium")) {
+            browser = "Safari";
+        } else if (userAgent.contains("Firefox")) {
+            browser = "Firefox";
+        } else if (userAgent.contains("Edg")) {
+            browser = "Microsoft Edge";
+        }
+        return browser + " (" + os + ")";
+    }
+
+    private String getDeviceIcon(String userAgent) {
+        if (userAgent == null) return "laptop_windows";
+        if (userAgent.contains("iPhone") || userAgent.contains("iPad") || userAgent.contains("Android")) {
+            return "smartphone";
+        }
+        return "laptop_windows";
     }
 }
