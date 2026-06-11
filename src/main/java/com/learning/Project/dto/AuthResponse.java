@@ -4,6 +4,9 @@ public class AuthResponse {
     private String token;
     private long expiresInMs;
     private String username;
+    private String firstName;
+    private String lastName;
+    private String role;
 
     public AuthResponse() {
     }
@@ -12,6 +15,23 @@ public class AuthResponse {
         this.token = token;
         this.expiresInMs = expiresInMs;
         this.username = username;
+    }
+
+    public AuthResponse(String token, long expiresInMs, String username, String firstName, String lastName) {
+        this.token = token;
+        this.expiresInMs = expiresInMs;
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+
+    public AuthResponse(String token, long expiresInMs, String username, String firstName, String lastName, String role) {
+        this.token = token;
+        this.expiresInMs = expiresInMs;
+        this.username = username;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
     }
 
     public String getToken() {
@@ -37,4 +57,29 @@ public class AuthResponse {
     public void setUsername(String username) {
         this.username = username;
     }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 }
+

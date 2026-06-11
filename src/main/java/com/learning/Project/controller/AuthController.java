@@ -77,10 +77,27 @@ public class AuthController {
         // Update the active token mapping with TTL from configuration
         redisTemplate.opsForValue().set(activeTokenKey, token, jwtTokenUtil.getValidityDuration());
 
+        String firstName = null;
+        String lastName = null;
+        String role = null;
+        try {
+            User user = userService.findByUsername(canonicalUsername);
+            if (user != null) {
+                firstName = user.getFirstName();
+                lastName = user.getLastName();
+                role = user.getRole();
+            }
+        } catch (Exception e) {
+            // Ignore and do not share if failed
+        }
+
         AuthResponse authResponse = new AuthResponse(
                 token,
                 jwtTokenUtil.getValidityDuration().toMillis(),
-                canonicalUsername);
+                canonicalUsername,
+                firstName,
+                lastName,
+                role);
 
         return ResponseEntity.ok(new ApiResponse<>(0, "Login successful", List.of(authResponse)));
     }
@@ -110,10 +127,27 @@ public class AuthController {
                     redisTemplate.opsForValue().set(newSessionKey, username, jwtTokenUtil.getValidityDuration());
                     redisTemplate.opsForValue().set(activeTokenKey, newToken, jwtTokenUtil.getValidityDuration());
                     
+                    String firstName = null;
+                    String lastName = null;
+                    String role = null;
+                    try {
+                        User user = userService.findByUsername(username);
+                        if (user != null) {
+                            firstName = user.getFirstName();
+                            lastName = user.getLastName();
+                            role = user.getRole();
+                        }
+                    } catch (Exception e) {
+                        // Ignore and do not share if failed
+                    }
+
                     AuthResponse authResponse = new AuthResponse(
                             newToken,
                             jwtTokenUtil.getValidityDuration().toMillis(),
-                            username);
+                            username,
+                            firstName,
+                            lastName,
+                            role);
                     return ResponseEntity.ok(new ApiResponse<>(0, "Token refreshed successfully", List.of(authResponse)));
                 }
             } catch (Exception e) {
