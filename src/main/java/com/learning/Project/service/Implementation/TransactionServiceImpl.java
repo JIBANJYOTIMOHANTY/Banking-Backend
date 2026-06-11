@@ -31,7 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<Transaction> getTransactionHistory(String accountNumber, String date) {
-        customerAccountRepository.findByAccountNumber(accountNumber)
+        customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         if (date != null && !date.isBlank()) {

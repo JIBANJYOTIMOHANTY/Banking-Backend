@@ -110,7 +110,7 @@ public class CustomerController {
                     .body(new ApiResponse<>(1, MessageConstants.INVALID_ACCOUNT_NUMBER, List.of()));
         }
 
-        if (customerAccountRepository.findByAccountNumber(accountNumber).isEmpty()) {
+        if (customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0).isEmpty()) {
             return ResponseEntity.badRequest()
                     .body(new ApiResponse<>(1, MessageConstants.ACCOUNT_NOT_FOUND, List.of()));
         }

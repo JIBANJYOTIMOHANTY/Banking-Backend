@@ -69,6 +69,7 @@ public class CustomerServiceImpl implements CustomerService {
         String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         account.setCreated_at(currentTime);
         account.setUpdated_at(currentTime);
+        account.setIsDeleted(0);
         
         // Auto-generate and enforce unique account number
         String generatedNo = generateAccountNumber();
@@ -85,7 +86,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     @CachePut(value = "bankAccounts", key = "#accountNumber")
     public CustomerAccount deposit(String accountNumber, double amount) {
-        CustomerAccount account = customerAccountRepository.findByAccountNumber(accountNumber)
+        CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         account.setBalance(account.getBalance() + amount);
@@ -102,7 +103,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     @CachePut(value = "bankAccounts", key = "#accountNumber")
     public CustomerAccount withdraw(String accountNumber, double amount) {
-        CustomerAccount account = customerAccountRepository.findByAccountNumber(accountNumber)
+        CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         if (account.getBalance() < amount) {
@@ -121,14 +122,14 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     @Cacheable(value = "bankAccounts", key = "#accountNumber")
     public CustomerAccount getAccount(String accountNumber) {
-        return customerAccountRepository.findByAccountNumber(accountNumber)
+        return customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
     }
 
     @Override
     public List<CustomerAccount> getAllAccounts() {
-        return customerAccountRepository.findAll();
+        return customerAccountRepository.findByIsDeleted(0);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class CustomerServiceImpl implements CustomerService {
         if (validationError.isPresent()) {
             throw new CustomerAccountExceptions(validationError.get());
         }
-        CustomerAccount existingAccount = customerAccountRepository.findByAccountNumber(account.getAccountNumber())
+        CustomerAccount existingAccount = customerAccountRepository.findByAccountNumberAndIsDeleted(account.getAccountNumber(), 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(
                                 MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + account.getAccountNumber()));
@@ -201,11 +202,11 @@ public class CustomerServiceImpl implements CustomerService {
     @Transactional
     @CacheEvict(value = "bankAccounts", key = "#accountNumber")
     public void deleteAccount(String accountNumber) {
-        CustomerAccount account = customerAccountRepository.findByAccountNumber(accountNumber)
+        CustomerAccount account = customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
                         () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
-        transactionService.deleteTransactions(accountNumber);
-        customerAccountRepository.delete(account);
+        account.setIsDeleted(1);
+        customerAccountRepository.save(account);
     }
 
     @Override
@@ -222,10 +223,10 @@ public class CustomerServiceImpl implements CustomerService {
             throw new CustomerAccountExceptions(MessageConstants.CANNOT_TRANSFER_TO_SELF);
         }
 
-        CustomerAccount sourceAccount = customerAccountRepository.findByAccountNumber(sourceAccountNumber)
+        CustomerAccount sourceAccount = customerAccountRepository.findByAccountNumberAndIsDeleted(sourceAccountNumber, 0)
                 .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + sourceAccountNumber));
         
-        CustomerAccount destAccount = customerAccountRepository.findByAccountNumber(destAccountNumber)
+        CustomerAccount destAccount = customerAccountRepository.findByAccountNumberAndIsDeleted(destAccountNumber, 0)
                 .orElseThrow(() -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + destAccountNumber));
 
         if (sourceAccount.getBalance() < amount) {

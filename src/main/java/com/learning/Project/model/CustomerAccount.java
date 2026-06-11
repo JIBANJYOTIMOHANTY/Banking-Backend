@@ -26,6 +26,9 @@ public class CustomerAccount implements Serializable {
     private String created_at;
     private String updated_at;
 
+    @Column(name = "is_deleted", nullable = false)
+    private int isDeleted = 0;
+
     private String dob;
     private String email;
     private String mobileNumber;
@@ -121,6 +124,14 @@ public class CustomerAccount implements Serializable {
 
     public void setUpdated_at(String updated_at) {
         this.updated_at = updated_at;
+    }
+
+    public int getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(int isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public User getUser() {
