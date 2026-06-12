@@ -6,10 +6,15 @@ A modern, high-performance, and secure banking backend system built using **Spri
 
 ## 🚀 Key Features
 
-*   **Secure Authentication (JWT & Redis Session Management):**
+*   **Secure Authentication & Session Lifecycle:**
     *   Authentication via JWT using JSON Web Tokens (JJWT 0.12.6).
     *   Stateful logout functionality enabled by registering active sessions and blacklisting tokens in Redis with sliding TTL.
     *   Single active session enforcement (logging in from a new client terminates the user's previous active JWT token session).
+    *   JWT token refresh endpoint (`/auth/refresh`) supporting sliding activity tracking and device auditing.
+*   **Device Session Auditing:**
+    *   Tracks and persists user session activity logs containing browser, OS version, IP address, current status, and specific administrator actions.
+*   **System Announcement Broadcasts:**
+    *   Provides administrator controls to publish live system-wide alert banners (`INFO` or `CRITICAL`), retrieve active announcements, and clear them.
 *   **Comprehensive Customer Account Operations:**
     *   Creation of accounts (automatically synchronized during user registration) with automated sequential account number generation (`ACC0001`, `ACC0002`, etc.).
     *   Support for deposits, withdrawals, profile updates, and direct account deletion.
@@ -85,7 +90,7 @@ Before running the application, make sure you have the following installed:
 
 ### 🔧 Configuration
 
-Update the configurations in [application.properties](file:///d:/project/Project/src/main/resources/application.properties) according to your local environment:
+Update the configurations in [application.properties](file:///d:/project/banking-backend/src/main/resources/application.properties) according to your local environment:
 
 ```properties
 # Server Port
@@ -168,8 +173,9 @@ All API endpoints are prefixed with `/api/v1`.
 | Endpoint | Method | Auth Required | Description |
 | :--- | :--- | :---: | :--- |
 | `/register` | `POST` | No | Registers a new user. Expects `username`, `password`, `firstName`, `lastName`, and `role`. |
-| `/login` | `POST` | No | Authenticates user credentials and returns a JWT token. |
-| `/logout` | `POST` | Yes | Invalidates the current JWT session in Redis. |
+| `/login` | `POST` | No | Authenticates user credentials, sets active token mapping, logs login event, and returns a JWT token. |
+| `/refresh` | `POST` | Yes | Refreshes the JWT session using a valid active token and logs the activity. |
+| `/logout` | `POST` | Yes | Invalidates the current JWT session in Redis and logs termination activity. |
 
 ### 🏦 Customer Account Operations (`/api/v1/bank/customer`)
 
@@ -183,6 +189,21 @@ All API endpoints are prefixed with `/api/v1`.
 | `/transfer/{sourceAcc}/{destAcc}/{amount}` | `PUT` | Yes | Yes | Transfers money from a source account to a destination account. |
 | `/` | `PATCH` | Yes | No | Updates metadata of an account. |
 | `/{accountNumber}` | `DELETE` | Yes | No | Deletes a customer account and cleans associated data. |
+
+### 📢 System Broadcast Alerts (`/api/v1/bank/broadcast`)
+
+| Endpoint | Method | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `/` | `POST` | Yes | Deactivates previous active alerts and publishes a new active system-wide message (categories: `INFO`, `CRITICAL`). |
+| `/active` | `GET` | Yes | Retrieves the current active broadcast alert, if one exists. |
+| `/active` | `DELETE` | Yes | Deactivates/clears all active broadcast announcements. |
+
+### 📋 Session Logs Audit (`/api/v1/bank/session-logs`)
+
+| Endpoint | Method | Auth Required | Description |
+| :--- | :--- | :---: | :--- |
+| `/` | `GET` | Yes | Retrieves device session audit logs for the authenticated administrator. |
+| `/` | `POST` | Yes | Publishes/registers a custom device session audit activity entry. |
 
 ### 📈 Transactions History (`/api/v1/bank`)
 
