@@ -5,7 +5,6 @@ import com.learning.Project.validation.RateLimit;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -15,14 +14,17 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    private StringRedisTemplate redisTemplate;
+    private final StringRedisTemplate redisTemplate;
+    private final Environment env;
 
-    @Autowired
-    private Environment env;
+    RateLimitInterceptor(StringRedisTemplate redisTemplate, Environment env) {
+        this.redisTemplate = redisTemplate;
+        this.env = env;
+    }
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         if (handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
             RateLimit rateLimit = handlerMethod.getMethodAnnotation(RateLimit.class);
@@ -32,7 +34,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                 String method = handlerMethod.getMethod().getName();
                 String key = "rate_limit:" + ip + ":" + method;
 
-                // Dynamic configuration lookup: check method-specific key first, then global default, then fallback to annotation
+                // Dynamic configuration lookup: check method-specific key first, then global
+                // default, then fallback to annotation
                 String limitProp = env.getProperty("ratelimit." + method + ".limit");
                 if (limitProp == null) {
                     limitProp = env.getProperty("ratelimit.default.limit");

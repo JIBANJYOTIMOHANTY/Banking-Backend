@@ -1,6 +1,5 @@
 package com.learning.Project.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,11 +20,13 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-        @Autowired
-        private JwtRequestFilter jwtRequestFilter;
+        private final JwtRequestFilter jwtRequestFilter;
+        private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
-        @Autowired
-        private CustomAuthenticationEntryPoint authenticationEntryPoint;
+        SecurityConfig(JwtRequestFilter jwtRequestFilter, CustomAuthenticationEntryPoint authenticationEntryPoint) {
+                this.jwtRequestFilter = jwtRequestFilter;
+                this.authenticationEntryPoint = authenticationEntryPoint;
+        }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
