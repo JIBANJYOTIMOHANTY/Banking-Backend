@@ -57,10 +57,10 @@ public class UserServiceImpl implements UserService {
 
         String role = (request.getRole() != null && !request.getRole().isBlank())
                 ? request.getRole().toUpperCase()
-                : "USER";
-        if (!role.startsWith("ROLE_")) {
-            role = "ROLE_" + role;
-        }
+                : "ADMIN";
+        // if (!role.startsWith("ROLE_")) {
+        // role = "ROLE_" + role;
+        // }
         user.setRole(role);
 
         return userRepository.save(user);
