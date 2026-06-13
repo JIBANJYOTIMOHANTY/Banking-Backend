@@ -7,7 +7,6 @@ import com.learning.Project.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,8 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Transactions", description = "Operations related to transaction statements")
 public class TransactionController {
 
-    @Autowired
-    private TransactionService transactionService;
+    private final TransactionService transactionService;
+
+    TransactionController(TransactionService transactionService) {
+        this.transactionService = transactionService;
+    }
 
     @GetMapping("/{accountNumber}/transactions")
     @Operation(summary = "Get transaction history by account number", description = "Retrieves a list of all transactions for a specific bank account using its account number. Optionally filters by date (yyyy-MM-dd).")

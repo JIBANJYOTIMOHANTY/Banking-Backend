@@ -5,7 +5,6 @@ import com.learning.Project.model.SessionLog;
 import com.learning.Project.service.SessionLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +19,11 @@ import java.util.List;
 @Tag(name = "Session Logs", description = "Endpoints for administrator device session logs")
 public class SessionLogController {
 
-    @Autowired
-    private SessionLogService sessionLogService;
+    private final SessionLogService sessionLogService;
+
+    SessionLogController(SessionLogService sessionLogService) {
+        this.sessionLogService = sessionLogService;
+    }
 
     @GetMapping
     @Operation(summary = "Get sessions logs for the authenticated user", description = "Retrieves all device session audit logs for the currently logged in administrator.")
@@ -33,7 +35,8 @@ public class SessionLogController {
 
     @PostMapping
     @Operation(summary = "Publish a new session log entry", description = "Appends a new device session log or audit event for the currently authenticated administrator.")
-    public ResponseEntity<ApiResponse<SessionLog>> addSessionLog(@RequestBody SessionLogRequest request, Principal principal) {
+    public ResponseEntity<ApiResponse<SessionLog>> addSessionLog(@RequestBody SessionLogRequest request,
+            Principal principal) {
         String username = principal.getName();
         SessionLog createdLog = sessionLogService.logActivity(
                 username,
@@ -41,8 +44,7 @@ public class SessionLogController {
                 request.getDeviceIcon(),
                 request.getIpAddress(),
                 request.getActivity(),
-                request.getStatus()
-        );
+                request.getStatus());
         return ResponseEntity.ok(new ApiResponse<>(0, "Session log registered successfully", List.of(createdLog)));
     }
 

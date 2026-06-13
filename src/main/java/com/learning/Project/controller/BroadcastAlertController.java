@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +16,11 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Broadcast Alerts", description = "Operations related to system-wide announcements")
 public class BroadcastAlertController {
 
-    @Autowired
-    private BroadcastAlertRepository broadcastAlertRepository;
+    private final BroadcastAlertRepository broadcastAlertRepository;
+
+    BroadcastAlertController(BroadcastAlertRepository broadcastAlertRepository) {
+        this.broadcastAlertRepository = broadcastAlertRepository;
+    }
 
     public static class BroadcastRequest {
         private String message;
@@ -72,8 +74,8 @@ public class BroadcastAlertController {
         BroadcastAlert newAlert = new BroadcastAlert(request.getMessage().trim(), currentTime, 1, alertType);
         BroadcastAlert savedAlert = broadcastAlertRepository.save(newAlert);
 
-
-        ApiResponse<BroadcastAlert> response = new ApiResponse<>(0, "Alert broadcasted successfully", List.of(savedAlert));
+        ApiResponse<BroadcastAlert> response = new ApiResponse<>(0, "Alert broadcasted successfully",
+                List.of(savedAlert));
         return ResponseEntity.ok(response);
     }
 
@@ -81,7 +83,8 @@ public class BroadcastAlertController {
     @Operation(summary = "Get current active system broadcast alert", description = "Returns the active system announcement alert, if any exists.")
     public ResponseEntity<ApiResponse<BroadcastAlert>> getActiveAlert() {
         List<BroadcastAlert> activeAlerts = broadcastAlertRepository.findByIsActive(1);
-        String message = activeAlerts.isEmpty() ? "No active broadcast alert found" : "Active alert retrieved successfully";
+        String message = activeAlerts.isEmpty() ? "No active broadcast alert found"
+                : "Active alert retrieved successfully";
         ApiResponse<BroadcastAlert> response = new ApiResponse<>(0, message, activeAlerts, activeAlerts.size());
         return ResponseEntity.ok(response);
     }

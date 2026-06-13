@@ -2,7 +2,6 @@ package com.learning.Project.controller;
 
 import com.learning.Project.repository.CustomerAccountRepository;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.learning.Project.model.CustomerAccount;
@@ -20,10 +19,13 @@ import java.util.Optional;
 @Tag(name = "Bank Accounts", description = "Operations related to bank accounts")
 public class CustomerController {
 
-    @Autowired
-    private CustomerAccountRepository customerAccountRepository;
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerAccountRepository customerAccountRepository;
+    private final CustomerService customerService;
+
+    CustomerController(CustomerAccountRepository customerAccountRepository, CustomerService customerService) {
+        this.customerAccountRepository = customerAccountRepository;
+        this.customerService = customerService;
+    }
 
     @PostMapping
     @RateLimit(limit = 5, period = 60)
