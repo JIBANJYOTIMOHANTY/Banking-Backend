@@ -6,6 +6,7 @@ public class RegisterRequest {
     private String firstName;
     private String lastName;
     private String role;
+    private String profileImage;
 
     public RegisterRequest() {
     }
@@ -16,6 +17,15 @@ public class RegisterRequest {
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
+    }
+
+    public RegisterRequest(String username, String password, String firstName, String lastName, String role, String profileImage) {
+        this.username = username;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+        this.profileImage = profileImage;
     }
 
     public String getUsername() {
@@ -56,5 +66,13 @@ public class RegisterRequest {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

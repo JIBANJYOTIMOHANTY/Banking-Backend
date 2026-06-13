@@ -44,12 +44,16 @@ public class UserServiceImpl implements UserService {
         if (request.getLastName() == null || request.getLastName().isBlank()) {
             throw new CustomerAccountExceptions("Last name is mandatory");
         }
+        if (request.getProfileImage() == null || request.getProfileImage().isBlank()) {
+            throw new CustomerAccountExceptions("Profile image is mandatory");
+        }
 
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
+        user.setProfileImage(request.getProfileImage());
 
         String role = (request.getRole() != null && !request.getRole().isBlank())
                 ? request.getRole().toUpperCase()

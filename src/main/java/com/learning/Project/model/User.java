@@ -39,6 +39,9 @@ public class User implements Serializable {
     @JoinColumn(name = "customer_account_id")
     private CustomerAccount customerAccount;
 
+    @Column(name = "profile_image", columnDefinition = "LONGTEXT")
+    private String profileImage;
+
     public User() {
     }
 
@@ -104,5 +107,13 @@ public class User implements Serializable {
 
     public void setCustomerAccount(CustomerAccount customerAccount) {
         this.customerAccount = customerAccount;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }

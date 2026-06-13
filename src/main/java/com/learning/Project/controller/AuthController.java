@@ -84,12 +84,14 @@ public class AuthController {
         String firstName = null;
         String lastName = null;
         String role = null;
+        String profileImage = null;
         try {
             User user = userService.findByUsername(canonicalUsername);
             if (user != null) {
                 firstName = user.getFirstName();
                 lastName = user.getLastName();
                 role = user.getRole();
+                profileImage = user.getProfileImage();
             }
         } catch (Exception e) {
             // Ignore and do not share if failed
@@ -101,7 +103,8 @@ public class AuthController {
                 canonicalUsername,
                 firstName,
                 lastName,
-                role);
+                role,
+                profileImage);
 
         try {
             String userAgent = servletRequest.getHeader("User-Agent");
@@ -151,12 +154,14 @@ public class AuthController {
                     String firstName = null;
                     String lastName = null;
                     String role = null;
+                    String profileImage = null;
                     try {
                         User user = userService.findByUsername(username);
                         if (user != null) {
                             firstName = user.getFirstName();
                             lastName = user.getLastName();
                             role = user.getRole();
+                            profileImage = user.getProfileImage();
                         }
                     } catch (Exception e) {
                         // Ignore and do not share if failed
@@ -168,7 +173,8 @@ public class AuthController {
                             username,
                             firstName,
                             lastName,
-                            role);
+                            role,
+                            profileImage);
 
                     try {
                         String userAgent = request.getHeader("User-Agent");
