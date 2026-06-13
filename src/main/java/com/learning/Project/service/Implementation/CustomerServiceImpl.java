@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,17 +26,21 @@ import com.learning.Project.model.BroadcastAlert;
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
-    @Autowired
-    private CustomerAccountRepository customerAccountRepository;
+    private final CustomerAccountRepository customerAccountRepository;
+    private final TransactionService transactionService;
+    private final MeterRegistry meterRegistry;
+    private final BroadcastAlertRepository broadcastAlertRepository;
 
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
-    private MeterRegistry meterRegistry;
-
-    @Autowired
-    private BroadcastAlertRepository broadcastAlertRepository;
+    public CustomerServiceImpl(
+            CustomerAccountRepository customerAccountRepository,
+            TransactionService transactionService,
+            MeterRegistry meterRegistry,
+            BroadcastAlertRepository broadcastAlertRepository) {
+        this.customerAccountRepository = customerAccountRepository;
+        this.transactionService = transactionService;
+        this.meterRegistry = meterRegistry;
+        this.broadcastAlertRepository = broadcastAlertRepository;
+    }
 
 
     private synchronized String generateAccountNumber() {

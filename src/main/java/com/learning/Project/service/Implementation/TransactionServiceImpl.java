@@ -9,18 +9,20 @@ import com.learning.Project.service.TransactionService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
-    @Autowired
-    private TransactionRepository transactionRepository;
+    private final TransactionRepository transactionRepository;
+    private final CustomerAccountRepository customerAccountRepository;
 
-    @Autowired
-    private CustomerAccountRepository customerAccountRepository;
+    TransactionServiceImpl(TransactionRepository transactionRepository,
+            CustomerAccountRepository customerAccountRepository) {
+        this.transactionRepository = transactionRepository;
+        this.customerAccountRepository = customerAccountRepository;
+    }
 
     @Override
     public void recordTransaction(String accountNumber, String type, double amount, double postBalance) {
@@ -33,9 +35,11 @@ public class TransactionServiceImpl implements TransactionService {
     public List<Transaction> getTransactionHistory(String accountNumber, String date) {
         customerAccountRepository.findByAccountNumberAndIsDeleted(accountNumber, 0)
                 .orElseThrow(
-                        () -> new CustomerAccountExceptions(MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
+                        () -> new CustomerAccountExceptions(
+                                MessageConstants.ACCOUNT_NOT_FOUND_WITH_NO + accountNumber));
         if (date != null && !date.isBlank()) {
-            return transactionRepository.findByAccountNumberAndTimestampStartingWithOrderByTimestampAsc(accountNumber, date);
+            return transactionRepository.findByAccountNumberAndTimestampStartingWithOrderByTimestampAsc(accountNumber,
+                    date);
         }
         return transactionRepository.findByAccountNumberOrderByTimestampAsc(accountNumber);
     }
