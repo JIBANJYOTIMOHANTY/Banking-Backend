@@ -6,6 +6,10 @@ A modern, high-performance, and secure banking backend system built using **Spri
 
 ## 🚀 Key Features
 
+*   **Mandatory Profile Image Storage (New):**
+    *   Saves custom user avatar images as Base64 encoded strings in the `users` table under `profile_image` column of type `LONGTEXT`.
+    *   Validates the presence of the profile image during user registration, throwing exceptions if not provided.
+    *   Loads and maps `profileImage` in JWT authentication responses (`/auth/login`, `/auth/refresh`) for dynamic frontend representation.
 *   **Secure Authentication & Session Lifecycle:**
     *   Authentication via JWT using JSON Web Tokens (JJWT 0.12.6).
     *   Stateful logout functionality enabled by registering active sessions and blacklisting tokens in Redis with sliding TTL.
@@ -26,6 +30,7 @@ A modern, high-performance, and secure banking backend system built using **Spri
 *   **High-Speed Caching (Redis Cache):**
     *   Integrated with Spring Cache abstraction.
     *   Drastically reduces database read load by caching active account details (`@Cacheable`, `@CachePut`, `@CacheEvict`).
+    *   Configured using Spring Data Redis 4.x builder patterns (`GenericJacksonJsonRedisSerializer`).
 *   **Dynamic API Rate Limiting:**
     *   Protects critical endpoints (e.g., transfers, deposits, withdrawals) from abuse.
     *   Uses a custom Redis-backed interceptor linked to a custom `@RateLimit` annotation.
@@ -68,12 +73,12 @@ graph TD
     D -.->|Cache Operations & Limit Tracking| G[(Redis Store)]
 ```
 
-*   **`config/`**: Contains configurations for Security, JWT Filters, Redis connection, MVC Interceptors (Rate Limiting), and OpenAPI Customizers.
+*   **`config/`**: Contains configurations for Security, JWT Filters, Redis connection (using modern builder-based serializers), and OpenAPI Customizers.
 *   **`controller/`**: Exposes REST endpoints, registers URL mapping patterns, and configures API operations tags.
 *   **`service/`**: Implements banking logic and coordinates transaction bounds.
-*   **`model/`**: Defines JPA Database Entities (`User`, `CustomerAccount`, `Transaction`).
-*   **`dto/`**: Standardizes Request/Response payloads (e.g. `LoginRequest`, `ApiResponse`).
-*   **`repository/`**: Interfaces extending `JpaRepository` for data access.
+*   **`model/`**: Defines JPA Database Entities (`User` with profile image column, `CustomerAccount`, `Transaction`).
+*   **`dto/`**: Standardizes Request/Response payloads (e.g. `LoginRequest`, `ApiResponse`, `AuthResponse`).
+*   **`repository/`**: Clean interfaces extending `JpaRepository` for data access.
 *   **`validation/`**: Custom input validators and Rate Limit annotations.
 
 ---
@@ -115,6 +120,7 @@ spring.cache.type=redis
 jwt.validity-duration=10m
 
 # Rate Limiter defaults (requests per period in seconds)
+# Dynamic configurations can be overridden in env properties
 ratelimit.default.limit=5
 ratelimit.default.period=60
 ```
@@ -172,8 +178,8 @@ All API endpoints are prefixed with `/api/v1`.
 
 | Endpoint | Method | Auth Required | Description |
 | :--- | :--- | :---: | :--- |
-| `/register` | `POST` | No | Registers a new user. Expects `username`, `password`, `firstName`, `lastName`, and `role`. |
-| `/login` | `POST` | No | Authenticates user credentials, sets active token mapping, logs login event, and returns a JWT token. |
+| `/register` | `POST` | No | Registers a new user. Expects `username`, `password`, `firstName`, `lastName`, and `profileImage` (Base64). |
+| `/login` | `POST` | No | Authenticates user credentials, sets active token mapping, logs login event, and returns a JWT token and user details including `profileImage`. |
 | `/refresh` | `POST` | Yes | Refreshes the JWT session using a valid active token and logs the activity. |
 | `/logout` | `POST` | Yes | Invalidates the current JWT session in Redis and logs termination activity. |
 
@@ -205,7 +211,7 @@ All API endpoints are prefixed with `/api/v1`.
 | `/` | `GET` | Yes | Retrieves device session audit logs for the authenticated administrator. |
 | `/` | `POST` | Yes | Publishes/registers a custom device session audit activity entry. |
 
-### 📈 Transactions History (`/api/v1/bank`)
+### 📋 Transactions History (`/api/v1/bank`)
 
 | Endpoint | Method | Auth Required | Rate Limited | Description |
 | :--- | :--- | :---: | :---: | :--- |
