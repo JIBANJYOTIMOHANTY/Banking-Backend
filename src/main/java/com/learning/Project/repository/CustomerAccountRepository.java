@@ -5,15 +5,16 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import com.learning.Project.model.CustomerAccount;
 
-@Repository
 public interface CustomerAccountRepository extends JpaRepository<CustomerAccount, Long> {
     Optional<CustomerAccount> findByAccountNumber(String accountNumber);
+
     Optional<CustomerAccount> findFirstByOrderByIdDesc();
+
     Optional<CustomerAccount> findByAccountNumberAndIsDeleted(String accountNumber, int isDeleted);
+
     List<CustomerAccount> findByIsDeleted(int isDeleted);
 
     @Query("SELECT c FROM CustomerAccount c WHERE c.isDeleted = 0 AND (" +
