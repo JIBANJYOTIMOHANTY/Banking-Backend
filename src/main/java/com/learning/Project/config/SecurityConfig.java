@@ -59,7 +59,7 @@ public class SecurityConfig {
                 CorsConfiguration configuration = new CorsConfiguration();
                 configuration.setAllowedOrigins(
                                 List.of("http://localhost:4000", "http://localhost:4200", "http://localhost:4201",
-                                                "http://localhost:4300", "https://banking-backend-hrbj.onrender.com"));
+                                                "http://localhost:4300", "https://trust-digital.netlify.app"));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setExposedHeaders(List.of("Authorization"));
