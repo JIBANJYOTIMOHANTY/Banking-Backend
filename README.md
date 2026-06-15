@@ -151,6 +151,30 @@ chmod +x mvnw
 
 The application will start on **`http://localhost:8080`**.
 
+### Running with Docker
+
+You can build and run the backend as a standalone container:
+
+1. **Build the Docker Image:**
+   ```bash
+   docker build -t banking-backend .
+   ```
+
+2. **Run the Container:**
+   ```bash
+   docker run -d -p 8080:8080 --name banking-backend-container banking-backend
+   ```
+
+### Running the Full Stack (Docker Compose)
+To run the entire banking ecosystem (MySQL, Redis, Backend, Frontend) simultaneously, navigate to the parent project root folder containing `docker-compose.yml` and run:
+```bash
+docker-compose up --build
+```
+*   **Backend API:** `http://localhost:8080`
+*   **Frontend Client:** `http://localhost:4000`
+*   **MySQL Database:** Mapped to host port `3307` (accessible via `localhost:3307` with user `root` / password `Jiban@123`)
+*   **Redis Cache:** Port `6379`
+
 ### Running Automated Tests
 Run the Maven test suite using:
 ```bash
